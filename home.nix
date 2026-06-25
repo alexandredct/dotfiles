@@ -20,5 +20,6 @@
     hello
     git
     htop
+    jq
   ];
 }
