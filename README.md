@@ -2,14 +2,14 @@
 
 Gerenciamento declarativo e reprodutível de ambiente de desenvolvimento pessoal (WSL / Linux) utilizando Nix Flakes e Home Manager.
 
-Este repositório armazena centralizadamente todas as configurações de shell, variáveis de ambiente, aliases e ferramentas CLI, aplicando conceitos de Infraestrutura como Código (IaC) para garantir consistência absoluta entre múltiplas máquinas.
+Este repositório armazena centralizadamente todas as configurações de shell, variáveis de ambiente, aliases, interface gráfica do terminal (prompt) e ferramentas CLI, aplicando conceitos de Infraestrutura como Código (IaC) para garantir consistência absoluta entre múltiplas máquinas.
 
 ---
 
 ## Estrutura do Repositório
 
 * flake.nix: O maestro da configuração. Define as fontes dos pacotes (canais do Nix) e os perfis das máquinas alvo (mapeados por usuário).
-* home.nix: A receita do ambiente pessoal. Declara os pacotes a serem instalados, os aliases do Bash e as configurações de integração do shell.
+* home.nix: A receita do ambiente pessoal. Declara os pacotes a serem instalados, os aliases do Bash, o prompt do shell e as configurações de integração.
 * flake.lock: Arquivo gerado automaticamente pelo Nix que grava as versões exatas de todas as dependências, garantindo a reprodutibilidade.
 
 ---
@@ -18,7 +18,8 @@ Este repositório armazena centralizadamente todas as configurações de shell, 
 
 O ambiente está configurado com um ecossistema moderno de ferramentas de terminal voltadas para produtividade e automação:
 
-* Toolkit CLI: bat (substituto do cat), eza (substituto do ls), zoxide (navegação inteligente de diretórios), fzf (busca fuzzy interativa), ripgrep (buscas rápidas em código) e fd (busca otimizada de arquivos).
+* Customização do Prompt: Starship (prompt cross-shell ultrarrápido escrito em Rust, exibindo diretório, branch e status do Git).
+* Toolkit CLI: bat (substituto do cat), eza (substituto do ls com suporte a ícones), zoxide (navegação inteligente de diretórios), fzf (busca fuzzy interativa), ripgrep (buscas rápidas em código) e fd (busca otimizada de arquivos).
 * Processamento de Dados: jq (JSON) e yq (YAML) para manipulação de manifestos e configurações de CI/CD.
 * Orquestração e SCM: lazygit (interface de terminal para Git) e lazydocker (interface de terminal para gerenciamento de contêineres).
 * Base do Sistema: git, htop e ferramentas GNU padrão.
@@ -50,6 +51,7 @@ Siga os passos abaixo para replicar exatamente este ambiente em um novo PC com W
 1. WSL2 instalado (se estiver no Windows) com uma distribuição Linux funcional (ex: Ubuntu / Debian).
 2. Acesso à Internet para baixar o instalador e os pacotes do cache do Nix.
 3. Git instalado na máquina para clonar o repositório.
+4. Fonte Nerd Font instalada (Recomendado: MesloLGS NF) configurada no seu emulador de terminal (ou VS Code) para que os ícones do Starship e do Eza funcionem corretamente.
 
 ### Passo a Passo de Instalação
 
@@ -87,11 +89,22 @@ O Nix lerá o Flake local, baixará as ferramentas necessárias e criará os lin
 
 #### 5. Recarregar o Shell
 
-Para que as novas ferramentas (como o zoxide) e os aliases entrem em vigor imediatamente:
+Para que as novas ferramentas (como o zoxide), o novo prompt (Starship) e os aliases entrem em vigor imediatamente:
 
 ```shell
     exec bash
 ```
+
+---
+
+## Dica de Configuração: Ícones Quebrados no Terminal do VS Code
+Se você estiver utilizando o VS Code no Windows conectado ao WSL e notar caracteres não reconhecidos (como  ou caixinhas de interrogação), certifique-se de configurar a fonte correta:
+
+1. Instale a fonte MesloLGS NF no seu Windows.
+2. No VS Code, abra as Configurações (Ctrl + ,).
+3. Busque por "terminal font".
+4. Defina o campo Terminal > Integrated: Font Family como 'MesloLGS NF' (com as aspas simples).
+5. Reinicie o VS Code.
 
 ---
 
