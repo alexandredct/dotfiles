@@ -18,6 +18,50 @@
     enableBashIntegration = true;
   };
 
+programs.git = {
+    enable = true;
+    
+    # ==========================================
+    # CONFIGURAÇÃO GLOBAL
+    # ==========================================
+    userName  = "Alexandre Trindade";
+    userEmail = "alexandredct@gmail.com"; 
+
+    extraConfig = {
+      # Força o uso do UTF-8
+      i18n = {
+        commitEncoding = "utf-8";
+        logOutputEncoding = "utf-8";
+      };
+
+      core = {
+        # Ignora mudanças falsas de permissão de arquivo (essencial para WSL)
+        filemode = false;
+        # Permite exibir acentos e cedilhas corretamente no git status
+        quotepath = false;
+      };
+
+      init.defaultBranch = "main";
+      pull.rebase = true;
+      fetch.prune = true; # Automatiza a limpeza de metadados remotos obsoletos
+    };
+
+    # ==========================================
+    # CONFIGURAÇÕES CONDICIONAIS (Trabalho/GitLab)
+    # ==========================================
+    includes = [
+      {
+        # O "gitdir:" intercepta qualquer repositório dentro deste caminho
+        condition = "gitdir:~/workspace/uerj/";
+        contents = {
+          user = {
+            email = "alexandre.trindade@uerj.br";
+          };
+        };
+      }
+    ];
+  };
+
   programs.bash = {
     enable = true;
     shellAliases = {
@@ -46,8 +90,6 @@
       # ======================================================================
       # DOCKER & LARAVEL
       # ======================================================================
-      
-      # Atalhos para não precisar digitar o path inteiro do container repetidas vezes
       art = "docker compose exec api php artisan";        # Ex: art migrate:fresh
       pest = "docker compose exec api ./vendor/bin/pest"; # Ex: pest tests/Feature/RouteTest.php
       
