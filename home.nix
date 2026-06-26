@@ -6,20 +6,32 @@
 
   home.stateVersion = "23.11"; 
 
+  # ==========================================================================
+  # HOME MANAGER
+  # ==========================================================================
   programs.home-manager.enable = true;
 
+  # ==========================================================================
+  # ZOXIDE (Navegação inteligente de diretórios)
+  # ==========================================================================
   programs.zoxide = {
     enable = true;
     enableBashIntegration = true;
   };
 
+  # ==========================================================================
+  # STARSHIP (Prompt customizado)
+  # ==========================================================================
   programs.starship = {
     enable = true;
     enableBashIntegration = true;
   };
 
-programs.git = {
-  enable = true;
+  # ==========================================================================
+  # GIT (Controle de Versão e Configurações)
+  # ==========================================================================
+  programs.git = {
+    enable = true;
   
   # ==========================================
   # CONFIGURAÇÃO GLOBAL
@@ -45,7 +57,7 @@ programs.git = {
       filemode = false;
       # Permite exibir acentos e cedilhas corretamente no git status
       quotepath = false;
-    };    
+    };
   };
 
   # ==========================================
@@ -62,8 +74,11 @@ programs.git = {
       };
     }
   ];
-};
+  };
 
+  # ==========================================================================
+  # BASH (Shell e Aliases)
+  # ==========================================================================
   programs.bash = {
     enable = true;
     shellAliases = {
