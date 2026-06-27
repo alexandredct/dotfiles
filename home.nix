@@ -159,9 +159,14 @@
     yq      # Processador YAML         | Ex: yq '.services' docker-compose.yml
     
     # ------------------------------------------------------------------------
-    # SCM & Orquestração
+    # SCM
     # ------------------------------------------------------------------------
     lazygit    # UI de terminal p/ Git    | Ex: lazygit
-    lazydocker # UI de terminal p/ Docker | Ex: lazydocker
+    
+    # ------------------------------------------------------------------------
+    # Ferramentas Docker
+    # ------------------------------------------------------------------------
+    docker-compose
+    lazydocker # UI para gerenciar contêineres no terminal | Ex: lazydocker
   ];
 }
