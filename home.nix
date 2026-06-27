@@ -4,7 +4,10 @@
   home.username = "alexandre";
   home.homeDirectory = "/home/alexandre";
 
-  home.stateVersion = "23.11"; 
+  home.stateVersion = "23.11";
+
+  # permite o uso de pacotes que tem licenças proprietárias
+  nixpkgs.config.allowUnfree = true;
 
   # ==========================================================================
   # HOME MANAGER
@@ -87,6 +90,28 @@
         };
       }
     ];
+  };
+
+  # ==========================================================================
+  # VSCODE
+  # ==========================================================================
+  programs.vscode = {
+    enable = true;
+    
+    profiles.default = {
+      extensions = with pkgs.vscode-extensions; [
+        bbenoist.nix
+        ms-azuretools.vscode-docker
+        ms-vscode-remote.remote-ssh
+      ];
+      
+      # Configurações do VS Code (settings.json)
+      userSettings = {
+        "editor.fontFamily" = "'MesloLGS NF', 'Droid Sans Mono', 'monospace'";
+        "terminal.integrated.fontFamily" = "'MesloLGS NF'";
+        "editor.fontLigatures" = true;
+      };
+    };
   };
 
   # ==========================================================================
