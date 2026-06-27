@@ -100,11 +100,35 @@
     
     profiles.default = {
       extensions = with pkgs.vscode-extensions; [
+        # extensões comentadas não estão empacotadas no repo oficial do Nixpkgs, mas existem no VSCode
         bbenoist.nix
         ms-azuretools.vscode-docker
         ms-vscode-remote.remote-ssh
+
+        # Docs e outras ferramentas
+        #mermaidchart.vscode-mermaid-chart
+        #gruntfuggly.todo-tree
+        eamodio.gitlens
+
+        # Java
+        vscjava.vscode-java-pack
+        vscjava.vscode-java-debug
+        vscjava.vscode-java-dependency
+        vscjava.vscode-maven
+
+        # PHP
+        #devsense.phptools-vscode
+        xdebug.php-debug
+        #laravel.vscode-laravel
+        #ryannaddy.laravel-artisan
+        #amiralizadeh9480.laravel-extra-intellisense
+
+        # Python
+        ms-python.python
+        ms-python.debugpy
+        ms-python.vscode-python-envs
       ];
-      
+
       # Configurações do VS Code (settings.json)
       userSettings = {
         "editor.fontFamily" = "'MesloLGS NF', 'Droid Sans Mono', 'monospace'";
