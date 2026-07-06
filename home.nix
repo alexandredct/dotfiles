@@ -261,5 +261,11 @@
     # ------------------------------------------------------------------------
     docker-compose
     lazydocker # UI para gerenciar contêineres no terminal | Ex: lazydocker
+
+    # ------------------------------------------------------------------------
+    # Ferramentas Nix
+    # ------------------------------------------------------------------------
+    nixd       # Language server para Nix (usado pela extensão da IDE)
+    alejandra  # Formatador de código Nix
   ];
 }
