@@ -163,6 +163,8 @@
       la = "ls -A";                              # Lista arquivos ocultos (exceto . e ..) | Ex: la
       l = "ls -CF";                              # Lista em colunas com indicadores de tipo | Ex: l
       st = "git status";                         # Ex: st
+      grep = "grep --color=auto";                # Destaca resultados da busca com cores
+      alert = "notify-send --urgency=low -i \"$([ $? = 0 ] && echo terminal || echo error)\" \"$(history|tail -n1|sed -e '\\''s/^\\s*[0-9]\\+\\s*//;s/[;&|]\\s*alert$//'\\'')\""; # Notificação desktop ao fim de comandos longos (ex: sleep 10; alert)
       
       # ======================================================================
       # GIT AVANÇADO E LIMPEZA
