@@ -60,17 +60,12 @@
         filemode = false;
         # Permite exibir acentos e cedilhas corretamente no git status
         quotepath = false;
-        # Integração com o Delta para diffs coloridos
-        pager = "delta";
       };
-      
-      # Configura o filtro do modo interativo (ex: git add -p) para usar o Delta
-      interactive = {
-        diffFilter = "delta --color-only";
-      };
-      
-      # Configurações visuais e de atalhos do Delta (tema escuro e navegação habilitada)
-      delta = {
+    };
+
+    delta = {
+      enable = true;
+      options = {
         navigate = true;
         light = false;
       };
