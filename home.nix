@@ -147,6 +147,15 @@
   };
 
   # ==========================================================================
+  # DIRENV (Carregamento automático de variáveis e ambientes Nix)
+  # ==========================================================================
+  programs.direnv = {
+    enable = true;
+    enableBashIntegration = true;
+    nix-direnv.enable = true;
+  };
+
+  # ==========================================================================
   # BASH (Shell e Aliases)
   # ==========================================================================
   programs.bash = {
@@ -304,6 +313,11 @@
     php85 # Interpretador nativo PHP 8.5 (caso não queira depender só do Herd Lite)
     php85Packages.composer # Gerenciador de dependências pareado com PHP 8.5
     intelephense # Melhor Language Server para autocomplete PHP/Laravel na IDE
+
+    # ------------------------------------------------------------------------
+    # Ferramentas Web / API
+    # ------------------------------------------------------------------------
+    httpie # Teste de APIs moderno e colorido (substituto amigável do curl)
 
     # ------------------------------------------------------------------------
     # Ecossistema React / Node.js
