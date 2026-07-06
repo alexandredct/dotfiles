@@ -23,6 +23,11 @@ O ambiente está configurado com um ecossistema moderno de ferramentas de termin
 * Processamento de Dados: jq (JSON) e yq (YAML) para manipulação de manifestos e configurações de CI/CD.
 * Orquestração e SCM: lazygit (interface de terminal para Git) e lazydocker (interface de terminal para gerenciamento de contêineres).
 * Base do Sistema: git, htop e ferramentas GNU padrão.
+* Linguagens e Ecossistemas (Nativamente via Nix):
+  * Java: JDK 25 LTS, Maven, Gradle, JDT Language Server e Google Java Format.
+  * PHP: PHP 8.5, Composer e Intelephense.
+  * Python: Python 3, Poetry, Pyright e Ruff.
+  * Node.js/React: Node, Yarn, pnpm, TS Language Server e Prettier.
 
 ---
 
@@ -30,6 +35,12 @@ O ambiente está configurado com um ecossistema moderno de ferramentas de termin
 
 O arquivo home.nix injeta aliases focados na otimização de fluxos repetitivos:
 
+* Nix & Home Manager:
+  * hms: Aplica as configurações do Nix (`home-manager switch --flake ...`).
+  * hmn: Lê as notas de atualização do Nix.
+  * hmg: Lista as gerações (versões) anteriores do ambiente.
+  * nfu: Atualiza o arquivo flake.lock (`nix flake update ...`).
+  * nix-gc: Faz a limpeza de lixo do Nix para liberar espaço em disco.
 * Git Avançado:
   * st: Atalho rápido para status.
   * gfp: Busca atualizações e limpa referências remotas obsoletas (git fetch --prune).
@@ -119,10 +130,10 @@ Sempre que desejar adicionar um novo pacote, criar um alias ou alterar uma confi
         git add home.nix
     ```
 
-3. Aplique a nova configuração:
+3. Aplique a nova configuração através do alias que configuramos:
 
     ```shell
-        home-manager switch --flake ~/.dotfiles/#NOME_DO_USUARIO
+        hms
     ```
 
 4. Realize o commit (incluindo o flake.lock se houver mudanças de dependências) e envie para o repositório remoto para manter todas as suas máquinas sincronizadas.
