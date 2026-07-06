@@ -138,6 +138,23 @@
   # ==========================================================================
   programs.bash = {
     enable = true;
+
+    # Configurações de histórico do Bash
+    historyControl = [ "ignoreboth" ];         # Ignora comandos duplicados ou que começam com espaço
+    historySize = 1000;                        # Quantidade de comandos mantidos na memória
+    historyFileSize = 2000;                    # Tamanho máximo do arquivo .bash_history
+
+    initExtra = ''
+      # NVM
+      export NVM_DIR="$HOME/.nvm"
+      [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+      [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+
+      # Herd Lite PHP
+      export PATH="/home/alexandre/.config/herd-lite/bin:$PATH"
+      export PHP_INI_SCAN_DIR="/home/alexandre/.config/herd-lite/bin:$PHP_INI_SCAN_DIR"
+    '';
+
     shellAliases = {
       # ======================================================================
       # NAVEGAÇÃO E SISTEMA
