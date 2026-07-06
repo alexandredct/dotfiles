@@ -160,6 +160,8 @@
       # NAVEGAÇÃO E SISTEMA
       # ======================================================================
       ll = "ls -alF";                            # Ex: ll
+      la = "ls -A";                              # Lista arquivos ocultos (exceto . e ..) | Ex: la
+      l = "ls -CF";                              # Lista em colunas com indicadores de tipo | Ex: l
       st = "git status";                         # Ex: st
       
       # ======================================================================
