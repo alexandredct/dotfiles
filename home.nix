@@ -284,5 +284,13 @@
     gradle # Sistema de build moderno e flexível
     jdt-language-server # Language server (Autocomplete/IntelliSense para IDE)
     google-java-format # Formatador oficial de código Java
+
+    # ------------------------------------------------------------------------
+    # Ecossistema Python
+    # ------------------------------------------------------------------------
+    python3 # Interpretador base do Python 3
+    poetry # Gerenciador de dependências moderno (alternativa melhor ao pip)
+    pyright # Language server super rápido da Microsoft para IDE
+    ruff # Linter e formatador de código extremamente rápido
   ];
 }
