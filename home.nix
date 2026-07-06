@@ -139,6 +139,14 @@
   };
 
   # ==========================================================================
+  # JAVA (LTS)
+  # ==========================================================================
+  programs.java = {
+    enable = true;
+    package = pkgs.jdk25;
+  };
+
+  # ==========================================================================
   # BASH (Shell e Aliases)
   # ==========================================================================
   programs.bash = {
@@ -268,5 +276,13 @@
     # ------------------------------------------------------------------------
     nixd # Language server para Nix (usado pela extensão da IDE)
     alejandra # Formatador de código Nix
+
+    # ------------------------------------------------------------------------
+    # Ecossistema Java
+    # ------------------------------------------------------------------------
+    maven # Gerenciador de dependências e build clássico
+    gradle # Sistema de build moderno e flexível
+    jdt-language-server # Language server (Autocomplete/IntelliSense para IDE)
+    google-java-format # Formatador oficial de código Java
   ];
 }
