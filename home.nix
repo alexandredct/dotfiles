@@ -295,5 +295,14 @@
     php85 # Interpretador nativo PHP 8.5 (caso não queira depender só do Herd Lite)
     php85Packages.composer # Gerenciador de dependências pareado com PHP 8.5
     intelephense # Melhor Language Server para autocomplete PHP/Laravel na IDE
+
+    # ------------------------------------------------------------------------
+    # Ecossistema React / Node.js
+    # ------------------------------------------------------------------------
+    nodejs # Interpretador base do JavaScript (inclui npm e npx)
+    yarn # Gerenciador de pacotes tradicional
+    pnpm # Gerenciador de pacotes ultra rápido (muito usado no mundo React moderno)
+    typescript-language-server # Inteligência de código para JS/TS e React (JSX/TSX)
+    prettier # O formatador oficial do ecossistema front-end
   ];
 }
