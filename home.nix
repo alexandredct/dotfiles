@@ -167,6 +167,13 @@
       alert = "notify-send --urgency=low -i \"$([ $? = 0 ] && echo terminal || echo error)\" \"$(history|tail -n1|sed -e '\\''s/^\\s*[0-9]\\+\\s*//;s/[;&|]\\s*alert$//'\\'')\""; # Notificação desktop ao fim de comandos longos (ex: sleep 10; alert)
       
       # ======================================================================
+      # CUSTOMIZAÇÕES E APLICAÇÕES (.bash_aliases)
+      # ======================================================================
+      agy = ''"$(wslpath "$(cmd.exe /c 'echo %USERPROFILE%' 2>/dev/null | tr -d '\r')")"/AppData/Local/Programs/Antigravity/bin/antigravity &> /dev/null &''; # Abre o IDE do Google Antigravity em segundo plano
+      depsen = "cd ~/workspace/uerj/git/depsen"; # Atalho para o diretório do projeto depsen
+      git-update-all = "for d in */; do (cd \"$d\" && [ -d .git ] && echo -e \"\\n\\033[1;34m» Processando: $d\\033[0m\" && git fetch -p && { git pull --rebase --autostash || { echo -e \"\\033[1;33m⚠ Conflito detectado! Abortando rebase e pulando...\\033[0m\"; git rebase --abort; }; }); done"; # Entra em cada subdiretório e faz um git pull --rebase
+      
+      # ======================================================================
       # GIT AVANÇADO E LIMPEZA
       # ======================================================================
       
