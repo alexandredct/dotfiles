@@ -31,6 +31,17 @@
   };
 
   # ==========================================================================
+  # DELTA (Diff visual)
+  # ==========================================================================
+  programs.delta = {
+    enable = true;
+    options = {
+      navigate = true;
+      light = false;
+    };
+  };
+
+  # ==========================================================================
   # GIT (Controle de Versão e Configurações)
   # ==========================================================================
   programs.git = {
@@ -60,14 +71,6 @@
         filemode = false;
         # Permite exibir acentos e cedilhas corretamente no git status
         quotepath = false;
-      };
-    };
-
-    delta = {
-      enable = true;
-      options = {
-        navigate = true;
-        light = false;
       };
     };
 
@@ -204,6 +207,20 @@
   };
 
   # ==========================================================================
+  # FERRAMENTAS DE TERMINAL (Módulos Nativos)
+  # ==========================================================================
+  programs.eza = {
+    enable = true;
+    enableBashIntegration = true;
+    icons = "auto";
+  };
+
+  programs.fzf = {
+    enable = true;
+    enableBashIntegration = true;
+  };
+
+  # ==========================================================================
   # PACOTES (Gerenciados pelo Nix)
   # ==========================================================================
   home.packages = with pkgs; [
@@ -219,8 +236,6 @@
     # Toolkit CLI
     # ------------------------------------------------------------------------
     bat     # Substituto do 'cat'      | Ex: bat src/app.env.exemplo
-    eza     # Substituto do 'ls'       | Ex: eza -la --icons
-    fzf     # Buscador interativo      | Ex: history | fzf
     ripgrep # Busca veloz em arquivos  | Ex: rg "use Spatie"
     fd      # Busca veloz de arquivos  | Ex: fd "\.php$"
     
