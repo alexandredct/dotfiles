@@ -173,6 +173,15 @@
 
     shellAliases = {
       # ======================================================================
+      # NIX & HOME MANAGER
+      # ======================================================================
+      hms = "home-manager switch --flake ~/.dotfiles#alexandre"; # Aplica as alterações do Nix
+      hmn = "home-manager news --flake ~/.dotfiles#alexandre"; # Lẽ as notas de atualização
+      hmg = "home-manager generations"; # Lista o histórico de versões
+      nfu = "nix flake update --flake ~/.dotfiles"; # Atualiza os canais do Flake
+      nix-gc = "nix-collect-garbage -d"; # Faz uma limpeza profunda de espaço em disco no Nix
+
+      # ======================================================================
       # NAVEGAÇÃO E SISTEMA
       # ======================================================================
       ll = "ls -alF"; # Ex: ll
