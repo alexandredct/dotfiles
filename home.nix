@@ -163,10 +163,6 @@
       [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
       [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
 
-      # Herd Lite PHP
-      export PATH="/home/alexandre/.config/herd-lite/bin:$PATH"
-      export PHP_INI_SCAN_DIR="/home/alexandre/.config/herd-lite/bin:$PHP_INI_SCAN_DIR"
-
       # Função agy: Abre o Antigravity IDE forçando o modo WSL e resolvendo o caminho absoluto
       agy() {
         local target="''${1:-.}"
@@ -292,5 +288,12 @@
     poetry # Gerenciador de dependências moderno (alternativa melhor ao pip)
     pyright # Language server super rápido da Microsoft para IDE
     ruff # Linter e formatador de código extremamente rápido
+
+    # ------------------------------------------------------------------------
+    # Ecossistema PHP
+    # ------------------------------------------------------------------------
+    php85 # Interpretador nativo PHP 8.5 (caso não queira depender só do Herd Lite)
+    php85Packages.composer # Gerenciador de dependências pareado com PHP 8.5
+    intelephense # Melhor Language Server para autocomplete PHP/Laravel na IDE
   ];
 }
