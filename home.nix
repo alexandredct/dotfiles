@@ -156,6 +156,13 @@
       # Herd Lite PHP
       export PATH="/home/alexandre/.config/herd-lite/bin:$PATH"
       export PHP_INI_SCAN_DIR="/home/alexandre/.config/herd-lite/bin:$PHP_INI_SCAN_DIR"
+
+      # Função agy: Abre o Antigravity IDE forçando o modo WSL e resolvendo o caminho absoluto
+      agy() {
+        local target="''${1:-.}"
+        local abs_path="$(realpath "$target")"
+        "$(wslpath "$(cmd.exe /c 'echo %USERPROFILE%' 2>/dev/null | tr -d '\r')")/AppData/Local/Programs/Antigravity IDE/bin/antigravity-ide" --new-window --folder-uri "vscode-remote://wsl+ubuntu-24.04$abs_path"
+      }
     '';
 
     shellAliases = {
@@ -172,7 +179,6 @@
       # ======================================================================
       # CUSTOMIZAÇÕES E APLICAÇÕES (.bash_aliases)
       # ======================================================================
-      agy = ''"$(wslpath "$(cmd.exe /c 'echo %USERPROFILE%' 2>/dev/null | tr -d '\r')")"/AppData/Local/Programs/Antigravity/bin/antigravity &> /dev/null &''; # Abre o IDE do Google Antigravity em segundo plano
       depsen = "cd ~/workspace/uerj/git/depsen"; # Atalho para o diretório do projeto depsen
       git-update-all = "for d in */; do (cd \"$d\" && [ -d .git ] && echo -e \"\\n\\033[1;34m» Processando: $d\\033[0m\" && git fetch -p && { git pull --rebase --autostash || { echo -e \"\\033[1;33m⚠ Conflito detectado! Abortando rebase e pulando...\\033[0m\"; git rebase --abort; }; }); done"; # Entra em cada subdiretório e faz um git pull --rebase
       
