@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-sync-workspace.py
+sync-git.py
 Sincroniza e clona repositorios Git organizados por manifesto YAML declarativo.
 
 Uso:
-  python3 sync-workspace.py [caminho_do_manifesto.yaml]
-  python3 sync-workspace.py --update [caminho_do_manifesto.yaml]
-  python3 sync-workspace.py --status [caminho_do_manifesto.yaml]
+  python3 sync-git.py [caminho_do_manifesto.yaml]
+  python3 sync-git.py --update [caminho_do_manifesto.yaml]
+  python3 sync-git.py --status [caminho_do_manifesto.yaml]
 """
 
 import sys
