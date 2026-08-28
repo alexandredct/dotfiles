@@ -39,7 +39,7 @@ def sync_manifest(manifest_path, action="clone"):
     protocol = config.get("protocol", "ssh")
 
     print("=" * 60)
-    print(f"Sincronizando Workspace: {manifest_file.name}")
+    print(f"Sincronizando Workspace Git: {manifest_file.name}")
     print(f"Destino Base: {base_dir}")
     print(f"Host: {gitlab_host}")
     print(f"Acao: {action.upper()}")
@@ -124,7 +124,7 @@ if __name__ == "__main__":
     if args:
         manifest = args[0]
     else:
-        default_manifest = Path.home() / ".dotfiles-uerj" / "workspaces" / "uerj.yaml"
+        default_manifest = Path.home() / ".dotfiles-uerj" / "workspaces" / "git-uerj.yaml"
         manifest = str(default_manifest)
 
     sync_manifest(manifest, action=action)
