@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """
 sync-svn.py
-Sincroniza e executa checkout do trunk de repositorios SVN via manifesto YAML.
+Sincroniza e executa checkout do trunk de repositórios SVN via manifesto YAML.
 
 Uso:
   python3 sync-svn.py [caminho_do_manifesto.yaml]
   python3 sync-svn.py --update [caminho_do_manifesto.yaml]
   python3 sync-svn.py --status [caminho_do_manifesto.yaml]
+  python3 sync-svn.py --help
 """
 
 import sys
@@ -17,17 +18,52 @@ from pathlib import Path
 try:
     import yaml
 except ImportError:
-    print("[AVISO] PyYAML nao instalado. Instalando...")
+    print("[AVISO] PyYAML não instalado. Instalando...")
     subprocess.run([sys.executable, "-m", "pip", "install", "--user", "pyyaml"], check=True)
     import yaml
 
+def print_help():
+    help_text = """
+================================================================================
+sync-svn.py - Gerenciador de Workspaces SVN Declarativos
+================================================================================
+
+USO:
+  python3 sync-svn.py [OPÇÕES] [ARQUIVO_MANIFESTO.yaml]
+
+AÇÕES DISPONÍVEIS:
+  (sem flags)     Realiza checkout dos repositórios/pastas que ainda não existem.
+  --update        Executa 'svn update' em todos os repositórios existentes.
+  --status        Exibe o estado de cada repositório ('svn status -q').
+  -h, --help      Exibe esta tela de ajuda detalhada.
+
+PADRÕES / DEFAULTS:
+  Se nenhum arquivo for especificado, utiliza:
+  ~/.dotfiles-uerj/workspaces/manifests/svn-uerj-manifest.yaml
+
+RESILIÊNCIA E TRATAMENTO DE AMBIENTE:
+  - Força LC_ALL=C.UTF-8 para evitar problemas de codificação e acentuação.
+  - Utiliza flags para aceitar certificados SSL corporativos sem travar a CLI:
+    --non-interactive --trust-server-cert-failures=unknown-ca,cn-mismatch,expired,not-yet-valid,other
+
+EXEMPLOS:
+  python3 sync-svn.py
+  python3 sync-svn.py --status
+  python3 sync-svn.py --update ~/.dotfiles-uerj/workspaces/manifests/svn-uerj-manifest.yaml
+================================================================================
+"""
+    print(help_text)
+
 def run_svn(args, cwd=None):
-    return subprocess.run(["svn"] + args, cwd=cwd, capture_output=True, text=True)
+    env = os.environ.copy()
+    env["LC_ALL"] = "C.UTF-8"
+    base_cmd = ["svn", "--non-interactive", "--trust-server-cert-failures=unknown-ca,cn-mismatch,expired,not-yet-valid,other"]
+    return subprocess.run(base_cmd + args, cwd=cwd, capture_output=True, text=True, env=env)
 
 def sync_svn_manifest(manifest_path, action="checkout"):
     manifest_file = Path(manifest_path).expanduser().resolve()
     if not manifest_file.exists():
-        print(f"[ERRO] Arquivo de manifesto nao encontrado: {manifest_file}")
+        print(f"[ERRO] Arquivo de manifesto não encontrado: {manifest_file}")
         return
 
     with open(manifest_file, "r", encoding="utf-8") as f:
@@ -43,7 +79,7 @@ def sync_svn_manifest(manifest_path, action="checkout"):
     print(f"Destino Base: {base_dir}")
     print(f"SVN Base URL: {svn_base_url}")
     print(f"Branch/Alvo: {branch}")
-    print(f"Acao: {action.upper()}")
+    print(f"Ação: {action.upper()}")
     print("=" * 60)
 
     base_dir.mkdir(parents=True, exist_ok=True)
@@ -86,14 +122,14 @@ def sync_svn_manifest(manifest_path, action="checkout"):
                 else:
                     print(f"[LIMPO]      {target_folder}")
             else:
-                print(f"[OK] Ja existe: {target_folder}")
+                print(f"[OK] Já existe: {target_folder}")
         else:
             if action in ["checkout", "update"]:
                 print(f"[CHECKOUT] {repo_url} -> {target_folder}...", end=" ", flush=True)
-                cmd = ["svn", "checkout", repo_url, str(dest_path)]
+                cmd_args = ["checkout", repo_url, str(dest_path)]
                 if username:
-                    cmd.extend(["--username", username])
-                res = subprocess.run(cmd, capture_output=True, text=True)
+                    cmd_args.extend(["--username", username])
+                res = run_svn(cmd_args)
                 if res.returncode == 0:
                     print("OK")
                     checked_out += 1
@@ -106,9 +142,13 @@ def sync_svn_manifest(manifest_path, action="checkout"):
     print(f"Resumo: Total: {total_repos} | Novos checkout: {checked_out} | Atualizados: {updated} | Falhas: {errors}")
 
 if __name__ == "__main__":
-    action = "checkout"
     args = sys.argv[1:]
 
+    if "-h" in args or "--help" in args:
+        print_help()
+        sys.exit(0)
+
+    action = "checkout"
     if "--update" in args:
         action = "update"
         args.remove("--update")
