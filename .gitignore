@@ -1,0 +1,11 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*.class
+
+# OS / Editor temporary files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
