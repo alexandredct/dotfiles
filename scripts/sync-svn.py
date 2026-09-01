@@ -119,7 +119,7 @@ if __name__ == "__main__":
     if args:
         manifest = args[0]
     else:
-        default_manifest = Path.home() / ".dotfiles-uerj" / "workspaces" / "svn-uerj.yaml"
+        default_manifest = Path.home() / ".dotfiles-uerj" / "workspaces" / "manifests" / "svn-uerj-manifest.yaml"
         manifest = str(default_manifest)
 
     sync_svn_manifest(manifest, action=action)

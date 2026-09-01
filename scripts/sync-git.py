@@ -124,7 +124,7 @@ if __name__ == "__main__":
     if args:
         manifest = args[0]
     else:
-        default_manifest = Path.home() / ".dotfiles-uerj" / "workspaces" / "git-uerj.yaml"
+        default_manifest = Path.home() / ".dotfiles-uerj" / "workspaces" / "manifests" / "git-uerj-manifest.yaml"
         manifest = str(default_manifest)
 
     sync_manifest(manifest, action=action)
