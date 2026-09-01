@@ -1,10 +1,10 @@
-# 🛠️ Scripts Utilitários de Automação de Workspaces
+# Scripts Utilitários de Automação de Workspaces
 
 Coleção de scripts Python utilitários voltados para automação, sincronização em lote e gerenciamento declarativo de repositórios **Git** e **SVN**.
 
 ---
 
-## 📌 Por que os scripts estão na raiz de `scripts/`?
+## Por que os scripts estão na raiz de `scripts/`?
 
 A estrutura plana direta em `scripts/` foi adotada deliberadamente pelos seguintes motivos:
 
@@ -14,9 +14,9 @@ A estrutura plana direta em `scripts/` foi adotada deliberadamente pelos seguint
 
 ---
 
-## 🚀 Scripts Disponíveis
+## Scripts Disponíveis
 
-### 1. 📦 `sync-git.py` (Gerenciador Declarativo de Repositórios Git)
+### 1. `sync-git.py` (Gerenciador Declarativo de Repositórios Git)
 Lê manifestos YAML estruturados e gerencia clonagem e atualização em lote de repositórios Git (especialmente GitLab institucional).
 
 #### Funcionalidades:
@@ -44,7 +44,7 @@ python3 ~/.dotfiles/scripts/sync-git.py --status /caminho/para/outro-manifesto.y
 
 ---
 
-### 2. 🏛️ `sync-svn.py` (Gerenciador Declarativo de Repositórios SVN)
+### 2. `sync-svn.py` (Gerenciador Declarativo de Repositórios SVN)
 Gerencia o checkout do branch padrão (`trunk` ou personalizado) e atualização em lote de projetos hospedados em servidores Subversion legados.
 
 #### Funcionalidades:
@@ -72,7 +72,7 @@ python3 ~/.dotfiles/scripts/sync-svn.py /caminho/para/outro-svn-manifesto.yaml
 
 ---
 
-## 🛡️ Prevenção de Falhas Comuns: UTF-8, EOL (LF) e WSL
+## Prevenção de Falhas Comuns: UTF-8, EOL (LF) e WSL
 
 Ao trabalhar com desenvolvimento em ambiente misto (WSL + Linux + Windows) e múltiplos repositórios heterogêneos, diversos problemas clássicos de ambiente podem ocorrer. Abaixo detalhamos como os scripts e as configurações os mitigam:
 
@@ -87,7 +87,7 @@ Ao trabalhar com desenvolvimento em ambiente misto (WSL + Linux + Windows) e mú
 
 ---
 
-## 📦 Estrutura dos Manifestos YAML
+## Estrutura dos Manifestos YAML
 
 Os manifestos padrão consumidos por estes scripts ficam localizados no repositório `~/.dotfiles-uerj`:
 
