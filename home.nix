@@ -366,7 +366,10 @@
     # ------------------------------------------------------------------------
     # Ecossistema Python
     # ------------------------------------------------------------------------
-    python3 # Interpretador base do Python 3
+    (python3.withPackages (ps: with ps; [
+      pyyaml
+      pip
+    ]))
     poetry # Gerenciador de dependências moderno (alternativa melhor ao pip)
     pyright # Language server super rápido da Microsoft para IDE
     ruff # Linter e formatador de código extremamente rápido
