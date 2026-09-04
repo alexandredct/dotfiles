@@ -46,6 +46,7 @@ O ambiente está configurado com um ecossistema moderno de ferramentas de termin
   * `nfu`: Atualiza o arquivo `flake.lock` (`nix flake update ...`).
   * `nix-gc`: Faz a limpeza de lixo do Nix para liberar espaço em disco.
 * **Git Avançado**:
+  * `gtag <tag>`: Criação automatizada de tags anotadas no padrão DEPSEN (alfa, beta e produção), gerando o log `git log --oneline <anterior>..HEAD` na mensagem e com opção de envio (`push`).
   * `st`: Atalho rápido para `git status`.
   * `gfp`: Busca atualizações e limpa referências remotas obsoletas (`git fetch --prune`).
   * `glog`: Plota a árvore dos últimos 20 commits de forma limpa.

@@ -236,6 +236,163 @@
           ls -1 "$ws_dir"/*.code-workspace | xargs -n 1 basename | sed 's/\.code-workspace$//'
         fi
       }
+
+      # Função gtag: Automatiza a criação de tags anotadas no padrão DEPSEN (alfa, beta e prod)
+      # Suporta:
+      #   gtag v1.0.0-alfa.30          -> Cria a tag com confirmação interativa
+      #   gtag -d v1.0.0-alfa.30       -> [Dry-Run] Apenas exibe o changelog e qual tag seria criada
+      #   gtag --next alfa             -> Calcula automaticamente a próxima tag alfa incremental
+      #   gtag -d --next alfa          -> Só mostra qual seria a próxima tag alfa calculada
+      gtag() {
+        local dry_run=false
+        local auto_next=""
+        local new_tag=""
+
+        while [ $# -gt 0 ]; do
+          case "$1" in
+            -d|--dry-run)
+              dry_run=true
+              shift
+              ;;
+            -n|--next)
+              auto_next="$2"
+              shift 2
+              ;;
+            *)
+              new_tag="$1"
+              shift
+              ;;
+          esac
+        done
+
+        # Garante que estamos dentro de um repositório git
+        if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+          echo -e "\033[1;31mErro:\033[0m Este diretório não é um repositório Git."
+          return 1
+        fi
+
+        # Cálculo automático da próxima tag se solicitado via --next
+        if [ -n "$auto_next" ]; then
+          case "$auto_next" in
+            alfa)
+              local last_alfa
+              last_alfa=$(git tag -l "*-alfa.*" --sort=-v:refname | head -n 1)
+              if [[ "$last_alfa" =~ ^(v[0-9]+\.[0-9]+\.[0-9]+-alfa\.)([0-9]+)$ ]]; then
+                local prefix="''${BASH_REMATCH[1]}"
+                local num="''${BASH_REMATCH[2]}"
+                new_tag="''${prefix}$((num + 1))"
+              else
+                echo -e "\033[1;33mNenhuma tag alfa encontrada para incrementar.\033[0m Informe manualmente (ex: gtag v1.0.0-alfa.1)."
+                return 1
+              fi
+              ;;
+            beta)
+              local last_beta
+              last_beta=$(git tag -l "*-beta.*" --sort=-v:refname | head -n 1)
+              if [[ "$last_beta" =~ ^(v[0-9]+\.[0-9]+\.[0-9]+-beta\.)([0-9]+)$ ]]; then
+                local prefix="''${BASH_REMATCH[1]}"
+                local num="''${BASH_REMATCH[2]}"
+                new_tag="''${prefix}$((num + 1))"
+              else
+                # Se não tem beta ainda, extrai da última alfa e inicia com beta.1
+                local last_alfa
+                last_alfa=$(git tag -l "*-alfa.*" --sort=-v:refname | head -n 1)
+                if [[ "$last_alfa" =~ ^(v[0-9]+\.[0-9]+\.[0-9]+)-alfa\.[0-9]+$ ]]; then
+                  new_tag="''${BASH_REMATCH[1]}-beta.1"
+                else
+                  echo -e "\033[1;33mNenhuma tag base encontrada.\033[0m Informe manualmente (ex: gtag v1.0.0-beta.1)."
+                  return 1
+                fi
+              fi
+              ;;
+            *)
+              echo -e "\033[1;31mOpção inválida para --next.\033[0m Use: alfa ou beta."
+              return 1
+              ;;
+          esac
+        fi
+
+        if [ -z "$new_tag" ]; then
+          echo -e "\033[1;31mErro:\033[0m Informe o nome da tag ou use --next."
+          echo -e "Uso:"
+          echo -e "  gtag <tag>                 -> Cria a tag com confirmação"
+          echo -e "  gtag -d <tag>              -> [Dry-Run] Apenas exibe o que seria feito"
+          echo -e "  gtag --next alfa           -> Sugere e cria a próxima tag alfa incremental"
+          echo -e "  gtag -d --next alfa        -> Apenas mostra qual seria a próxima tag alfa"
+          echo -e "  gtag --next beta           -> Sugere e cria a próxima tag beta incremental"
+          return 1
+        fi
+
+        local pattern=""
+        if [[ "$new_tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-alfa\.[0-9]+$ ]]; then
+          pattern="*-alfa.*"
+        elif [[ "$new_tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-beta\.[0-9]+$ ]]; then
+          pattern="*-beta.*"
+        elif [[ "$new_tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          pattern="v[0-9]*.[0-9]*.[0-9]*"
+        else
+          pattern="*"
+        fi
+
+        local last_tag
+        if [ "$pattern" = "v[0-9]*.[0-9]*.[0-9]*" ]; then
+          last_tag=$(git tag -l "v*.*.*" --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
+        else
+          last_tag=$(git tag -l "$pattern" --sort=-v:refname | head -n 1)
+        fi
+
+        # Fallback se for a primeira tag de beta ou prod
+        if [ -z "$last_tag" ] && [[ "$new_tag" =~ -beta\. ]]; then
+          last_tag=$(git tag -l "*-alfa.*" --sort=-v:refname | head -n 1)
+        elif [ -z "$last_tag" ] && [[ "$new_tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          last_tag=$(git tag -l "*-beta.*" --sort=-v:refname | head -n 1)
+        fi
+
+        local cmd log_output msg
+        if [ -n "$last_tag" ]; then
+          cmd="git log --oneline $last_tag..HEAD"
+          log_output=$(git log --oneline "$last_tag..HEAD")
+        else
+          cmd="git log --oneline HEAD"
+          log_output=$(git log --oneline HEAD)
+        fi
+
+        if [ -z "$log_output" ]; then
+          echo -e "\033[1;33mAviso:\033[0m Nenhum commit novo desde a tag anterior ($last_tag)."
+        fi
+
+        # Monta a mensagem no padrão DEPSEN
+        msg=$(printf "%s\n%s" "$cmd" "$log_output")
+
+        echo -e "\033[1;34m========================================\033[0m"
+        echo -e "\033[1;34m» Nova Tag:\033[0m      $new_tag"
+        echo -e "\033[1;32m» Tag Anterior:\033[0m  ''${last_tag:-Nenhuma (início do repo)}"
+        if [ "$dry_run" = true ]; then
+          echo -e "\033[1;33m» Modo:\033[0m          DRY-RUN (Simulação - nenhuma tag será criada)"
+        fi
+        echo -e "\033[1;34m========================================\033[0m"
+        echo "$msg"
+        echo -e "\033[1;34m========================================\033[0m"
+
+        if [ "$dry_run" = true ]; then
+          return 0
+        fi
+
+        read -r -p "Confirmar criação da tag? [S/n] " confirm
+        confirm="''${confirm:-S}"
+        if [[ ! "$confirm" =~ ^[sSyY]$ ]]; then
+          echo "Operação cancelada."
+          return 0
+        fi
+
+        git tag -a "$new_tag" -m "$msg"
+        echo -e "\033[1;32m✔ Tag $new_tag criada com sucesso!\033[0m"
+
+        read -r -p "Deseja fazer push da tag para origin? [s/N] " push_confirm
+        if [[ "$push_confirm" =~ ^[sSyY]$ ]]; then
+          git push origin "$new_tag"
+        fi
+      }
     '';
 
     shellAliases = {
