@@ -33,8 +33,12 @@ O ambiente está configurado com um ecossistema moderno de ferramentas de termin
 
 ## Aliases Configurados
 
-O arquivo `home.nix` injeta aliases focados na otimização de fluxos repetitivos:
-
+* **Workspaces UERJ (VS Code e Antigravity IDE)**:
+  * `uws`: Menu interativo (`fzf`) para selecionar e abrir qualquer workspace da UERJ no VS Code (ex: `uws`).
+  * `uws <termo>`: Abre diretamente o workspace cujo nome contenha o termo buscado (ex: `uws assiste`, `uws euerj`, `uws spo`).
+  * `uws -a <termo>`: Abre diretamente no **Antigravity IDE** forçando o modo remoto WSL (ex: `uws -a spo`).
+  * `ws-list`: Lista todos os workspaces `.code-workspace` disponíveis de forma limpa.
+  * `ws-uerj`: Navega diretamente para o diretório `~/.dotfiles-uerj/workspaces/vscode`.
 * **Nix & Home Manager**:
   * `hms`: Aplica as configurações do Nix (`home-manager switch --flake ...`).
   * `hmn`: Lê as notas de atualização do Nix.

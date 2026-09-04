@@ -178,9 +178,60 @@
         local abs_path="$(realpath "$target")"
         "$(wslpath "$(cmd.exe /c 'echo %USERPROFILE%' 2>/dev/null | tr -d '\r')")/AppData/Local/Programs/Antigravity IDE/bin/antigravity-ide" --new-window --folder-uri "vscode-remote://wsl+ubuntu-24.04$abs_path"
       }
+
+      # Função uws: Seleciona ou abre workspaces da UERJ via fzf ou busca direta
+      # Uso:
+      #   uws            -> Menu interativo fzf (abre no VS Code)
+      #   uws assiste    -> Busca e abre o workspace do assiste no VS Code
+      #   uws -a assiste -> Abre no Antigravity IDE
+      uws() {
+        local ws_dir="$HOME/.dotfiles-uerj/workspaces/vscode"
+        local opener="code"
+        local query=""
+
+        if [ "$1" = "-a" ] || [ "$1" = "--agy" ]; then
+          opener="agy"
+          shift
+        fi
+
+        query="$1"
+
+        if [ ! -d "$ws_dir" ]; then
+          echo "Diretorio de workspaces nao encontrado: $ws_dir"
+          return 1
+        fi
+
+        if [ -n "$query" ]; then
+          local target
+          target=$(find "$ws_dir" -maxdepth 1 -name "*$query*.code-workspace" | head -n 1)
+          if [ -n "$target" ] && [ -f "$target" ]; then
+            "$opener" "$target"
+            return 0
+          fi
+          echo "Workspace contendo '$query' nao encontrado em $ws_dir."
+          return 1
+        fi
+
+        if command -v fzf >/dev/null 2>&1; then
+          local selected
+          selected=$(find "$ws_dir" -maxdepth 1 -name "*.code-workspace" -exec basename {} \; | fzf --prompt="Workspace UERJ > " --height=40% --reverse)
+          if [ -n "$selected" ]; then
+            "$opener" "$ws_dir/$selected"
+          fi
+        else
+          echo "Workspaces disponiveis em $ws_dir:"
+          ls -1 "$ws_dir"/*.code-workspace | xargs -n 1 basename | sed 's/\.code-workspace$//'
+        fi
+      }
     '';
 
     shellAliases = {
+      # ======================================================================
+      # WORKSPACES UERJ & VSCODE / ANTIGRAVITY
+      # ======================================================================
+      ws-list = "ls -1 ~/.dotfiles-uerj/workspaces/vscode/*.code-workspace | xargs -n 1 basename | sed 's/\\.code-workspace$//'"; # Lista todos os workspaces disponiveis
+      ws-uerj = "cd ~/.dotfiles-uerj/workspaces/vscode"; # Navega para o diretorio de workspaces UERJ
+
       # ======================================================================
       # NIX & HOME MANAGER
       # ======================================================================
