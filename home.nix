@@ -183,6 +183,89 @@
         "$(wslpath "$(cmd.exe /c 'echo %USERPROFILE%' 2>/dev/null | tr -d '\r')")/AppData/Local/Programs/Antigravity IDE/bin/antigravity-ide" --new-window "$uri_flag" "vscode-remote://wsl+ubuntu-24.04$abs_path"
       }
 
+      # Função agy-history: Consulta, busca e navega pelo histórico de conversas do Antigravity IDE
+      # Uso:
+      #   agy-history                     -> Lista as conversas mais recentes
+      #   agy-history <termo>             -> Busca termo no histórico (ex: workspaces/vscode, tag, depsen)
+      #   agy-history -i [termo]          -> Menu interativo (fzf) com pré-visualização das mensagens
+      #   agy-history -s <id>             -> Exibe as mensagens detalhadas de uma conversa
+      #   agy-history -p <id>             -> Imprime o caminho da pasta da conversa
+      #   agy-history -o <id>             -> Abre os arquivos/artefatos da conversa no Antigravity IDE
+      agy-history() {
+        local script_path="$HOME/.dotfiles/bin/agy-history.py"
+
+        case "$1" in
+          -h|--help)
+            echo -e "\033[1;34mUso do agy-history:\033[0m"
+            echo -e "  agy-history                      -> Lista as conversas mais recentes"
+            echo -e "  agy-history <termo>              -> Busca texto (ex: workspaces/vscode, tag, depsen)"
+            echo -e "  agy-history -i [termo]           -> Navegador interativo (fzf) com preview das mensagens"
+            echo -e "  agy-history -s <id>              -> Mostra histórico detalhado da conversa"
+            echo -e "  agy-history -o <id>              -> Abre a pasta da conversa no Antigravity IDE"
+            echo -e "  agy-history -p <id>              -> Imprime o caminho da pasta da conversa"
+            return 0
+            ;;
+          -s|--show)
+            python3 "$script_path" -s "$2"
+            return $?
+            ;;
+          -p|--path)
+            python3 "$script_path" -p "$2"
+            return $?
+            ;;
+          -o|--open)
+            local target_dir
+            target_dir=$(python3 "$script_path" -p "$2")
+            if [ -n "$target_dir" ] && [ -d "$target_dir" ]; then
+              agy "$target_dir"
+            else
+              echo -e "\033[1;31mConversa não encontrada: $2\033[0m"
+              return 1
+            fi
+            return 0
+            ;;
+          -i|--interactive)
+            shift
+            local query="$*"
+            if ! command -v fzf >/dev/null 2>&1; then
+              echo "fzf não está instalado. Mostrando modo texto normal:"
+              python3 "$script_path" $query
+              return $?
+            fi
+
+            local selected
+            selected=$(python3 "$script_path" --fzf-lines $query | fzf \
+              --prompt="Conversa Antigravity > " \
+              --height=80% --reverse \
+              --preview="python3 '$script_path' -s {2}" \
+              --preview-window=right:60%:wrap)
+
+            if [ -n "$selected" ]; then
+              local selected_id
+              selected_id=$(echo "$selected" | awk -F' \\| ' '{print $2}')
+              echo -e "\033[1;32mSelecionado: $selected_id\033[0m"
+              read -r -p "Ações: [v] Ver no terminal | [a] Abrir no Antigravity IDE | [c] Cancelar: " act
+              case "$act" in
+                v|V)
+                  python3 "$script_path" -s "$selected_id"
+                  ;;
+                a|A)
+                  agy-history -o "$selected_id"
+                  ;;
+                *)
+                  return 0
+                  ;;
+              esac
+            fi
+            return 0
+            ;;
+          *)
+            python3 "$script_path" "$@"
+            return $?
+            ;;
+        esac
+      }
+
       # Função uws: Seleciona ou abre workspaces da UERJ via fzf ou busca direta
       # Uso:
       #   uws            -> Menu interativo fzf (abre no VS Code)
