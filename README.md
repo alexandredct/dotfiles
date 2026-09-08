@@ -236,3 +236,9 @@ Sempre que desejar adicionar um novo pacote, criar um alias ou alterar uma confi
     git commit -m "feat: atualiza configuracoes do ambiente"
     git push
     ```
+
+---
+
+## Guias e Troubleshooting
+
+* [Troubleshooting & Arquitetura: Antigravity IDE / VS Code Server no WSL](docs/troubleshooting-antigravity-wsl.md): Resolução detalhada de problemas de download do servidor remoto, variáveis de ambiente para automação do Home Manager (`DONT_PROMPT_WSL_INSTALL`) e compatibilização de nomes de distribuição WSL.
