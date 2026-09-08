@@ -8,6 +8,12 @@
 
   home.stateVersion = "23.11";
 
+  # Variáveis de sessão globais
+  home.sessionVariables = {
+    # Silencia aviso interativo do VS Code ao rodar Home Manager no WSL
+    DONT_PROMPT_WSL_INSTALL = "1";
+  };
+
   # permite o uso de pacotes que tem licenças proprietárias
   nixpkgs.config.allowUnfree = true;
 
@@ -177,10 +183,11 @@
         local target="''${1:-.}"
         local abs_path="$(realpath "$target")"
         local uri_flag="--folder-uri"
+        local distro="''${WSL_DISTRO_NAME:-Ubuntu-26.04}"
         if [ -f "$abs_path" ] && [[ "$abs_path" == *.code-workspace ]]; then
           uri_flag="--file-uri"
         fi
-        "$(wslpath "$(cmd.exe /c 'echo %USERPROFILE%' 2>/dev/null | tr -d '\r')")/AppData/Local/Programs/Antigravity IDE/bin/antigravity-ide" --new-window "$uri_flag" "vscode-remote://wsl+ubuntu-24.04$abs_path"
+        "$(wslpath "$(cmd.exe /c 'echo %USERPROFILE%' 2>/dev/null | tr -d '\r')")/AppData/Local/Programs/Antigravity IDE/bin/antigravity-ide" --new-window "$uri_flag" "vscode-remote://wsl+$distro$abs_path"
       }
 
       # Função agy-history: Consulta, busca e navega pelo histórico de conversas do Antigravity IDE
