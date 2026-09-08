@@ -231,3 +231,5 @@ Sempre que desejar adicionar um novo pacote, criar um alias ou alterar uma confi
 ## Guias e Troubleshooting
 
 * [Troubleshooting & Arquitetura: Antigravity IDE / VS Code Server no WSL](docs/troubleshooting-antigravity-wsl.md): Resolução detalhada de problemas de download do servidor remoto, variáveis de ambiente para automação do Home Manager (`DONT_PROMPT_WSL_INSTALL`) e compatibilização de nomes de distribuição WSL.
+* [Gestão de Extensões por Workspace no VS Code e Antigravity IDE](docs/gestao-extensoes-workspaces.md): Como gerenciar, isolar stacks (Java, PHP, Fullstack, Infra) e automatizar extensões via `extensions.recommendations` e perfis (`--profile`).
+

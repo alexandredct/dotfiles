@@ -181,13 +181,14 @@
       # Função agy: Abre o Antigravity IDE forçando o modo WSL e resolvendo o caminho absoluto
       agy() {
         local target="''${1:-.}"
+        shift || true
         local abs_path="$(realpath "$target")"
         local uri_flag="--folder-uri"
         local distro="''${WSL_DISTRO_NAME:-Ubuntu-26.04}"
         if [ -f "$abs_path" ] && [[ "$abs_path" == *.code-workspace ]]; then
           uri_flag="--file-uri"
         fi
-        "$(wslpath "$(cmd.exe /c 'echo %USERPROFILE%' 2>/dev/null | tr -d '\r')")/AppData/Local/Programs/Antigravity IDE/bin/antigravity-ide" --new-window "$uri_flag" "vscode-remote://wsl+$distro$abs_path"
+        "$(wslpath "$(cmd.exe /c 'echo %USERPROFILE%' 2>/dev/null | tr -d '\r')")/AppData/Local/Programs/Antigravity IDE/bin/antigravity-ide" --new-window "$@" "$uri_flag" "vscode-remote://wsl+$distro$abs_path"
       }
 
       # Função agy-history: Consulta, busca e navega pelo histórico de conversas do Antigravity IDE
@@ -295,12 +296,43 @@
           return 1
         fi
 
+        _get_profile() {
+          local ws_name="$1"
+          case "$ws_name" in
+            *assiste*|*sfs*|*siext*|*validador*|*microservicos*|*springboot*)
+              echo "UERJ - Java"
+              ;;
+            *laravel*|*prematricula*|*pessoa*|*sabm*|*sie*|*sig*|*spo*)
+              echo "UERJ - PHP"
+              ;;
+            *euerj*|*templates*)
+              echo "UERJ - Fullstack"
+              ;;
+            *dotfiles*)
+              echo "UERJ - Infra"
+              ;;
+            *)
+              echo ""
+              ;;
+          esac
+        }
+
         _open_ws() {
           local file="$1"
+          local base_name
+          base_name=$(basename "$file" .code-workspace)
+          local profile
+          profile=$(_get_profile "$base_name")
+
+          local profile_args=()
+          if [ -n "$profile" ]; then
+            profile_args=(--profile "$profile")
+          fi
+
           if [ "$is_agy" = true ]; then
-            agy "$file"
+            agy "$file" "''${profile_args[@]}"
           else
-            code "$file"
+            code "''${profile_args[@]}" "$file"
           fi
         }
 
