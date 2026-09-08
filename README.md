@@ -64,10 +64,15 @@ Siga os passos abaixo para replicar exatamente este ambiente em um novo PC com W
 
 ### Requisitos Prévios
 
-1. **WSL2 instalado** (se estiver no Windows) com uma distribuição Linux funcional (ex: Ubuntu 24.04 / 26.04).
-2. **Acesso à Internet** para baixar o instalador e os pacotes do cache do Nix.
-3. **Git instalado** na máquina para clonar o repositório (`sudo apt update && sudo apt install -y git`).
-4. **Fonte Nerd Font instalada** (Recomendado: *MesloLGS NF*) configurada no seu emulador de terminal (ou VS Code) para que os ícones do Starship e do Eza funcionem corretamente.
+1. **WSL2 instalado** no Windows com uma distribuição Linux moderna (ex: Ubuntu 24.04 ou Ubuntu 26.04).
+2. **Desconectar da VPN Corporativa (CRÍTICO)**:
+   > [!WARNING]
+   > Certifique-se de **desconectar temporariamente de VPNs corporativas** durante a instalação inicial do Nix e durante a **primeira conexão do Antigravity IDE ao WSL**. Muitas VPNs corporativas interceptam e bloqueiam requisições TLS e o download de binários headless dos CDNs do Google (`*.gvt1.com`, `dl.google.com`), resultando no erro `Download failed from all URLs` ou `exitCode==1==`.
+3. **Instalar pacotes base do sistema:**
+   ```bash
+   sudo apt update && sudo apt install -y curl wget ca-certificates tar gzip procps git
+   ```
+4. **Fonte Nerd Font instalada** no Windows (Recomendado: *MesloLGS NF*) para exibição correta dos ícones do Starship e do Eza.
 
 ---
 
@@ -75,25 +80,24 @@ Siga os passos abaixo para replicar exatamente este ambiente em um novo PC com W
 
 #### 1. Instalar o Nix (Via Determinate Systems)
 
-O instalador da Determinate Systems configura automaticamente os Flakes e gerencia o daemon do Nix de forma limpa no WSL.
+O instalador da Determinate Systems configura automaticamente os Flakes e gerencia o daemon do Nix de forma limpa no WSL:
 
 ```bash
 URL="https://install.determinate.systems/nix"
 curl --proto '=https' --tlsv1.2 -sSf -L "$URL" | sh -s -- install
 ```
 
-> **Nota:** Siga as instruções exibidas no terminal. Ao finalizar, feche e abra um novo terminal (ou execute `. /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh`) para carregar o ambiente do Nix na sessão atual.
+> **Nota:** Ao finalizar, feche e abra o terminal (ou execute `exec bash`) para carregar os binários do Nix no PATH.
 
 ---
 
 #### 2. Configurar Chaves SSH para o GitHub (Pessoal e Trabalho)
 
-Em uma instalação recém-criada do WSL, o diretório `~/.ssh` ainda não existe. Para gerenciar múltiplas contas (ex: **Pessoal** e **Trabalho**) de forma organizada e sem conflitos, crie arquivos de chaves separados e use o `~/.ssh/config`:
+Em uma instalação recém-criada do WSL, configure seu par de chaves SSH:
 
-1. **Garantir a criação do diretório `.ssh`:**
+1. **Criar o diretório `.ssh`:**
    ```bash
-   mkdir -p ~/.ssh
-   chmod 700 ~/.ssh
+   mkdir -p ~/.ssh && chmod 700 ~/.ssh
    ```
 
 2. **Gerar as chaves SSH (algoritmo Ed25519):**
@@ -105,9 +109,8 @@ Em uma instalação recém-criada do WSL, o diretório `~/.ssh` ainda não exist
      ```bash
      ssh-keygen -t ed25519 -C "seu_email_trabalho@empresa.com" -f ~/.ssh/id_ed25519_trabalho
      ```
-   *(Pressione `Enter` para prosseguir e defina uma senha/passphrase se desejar)*
 
-3. **Iniciar o SSH Agent e adicionar as chaves privadas:**
+3. **Iniciar o SSH Agent e adicionar as chaves:**
    ```bash
    eval "$(ssh-agent -s)"
    ssh-add ~/.ssh/id_ed25519_pessoal
@@ -115,19 +118,14 @@ Em uma instalação recém-criada do WSL, o diretório `~/.ssh` ainda não exist
    ```
 
 4. **Configurar o arquivo `~/.ssh/config`:**
-   Crie ou edite o arquivo de configuração para mapear automaticamente qual chave usar para cada host:
    ```bash
    cat << 'EOF' > ~/.ssh/config
-   # detalhes em https://linuxize.com/post/using-the-ssh-config-file/#quick-reference
-
-   # Conta Pessoal (Padrão para github.com)
    Host github.com
        HostName github.com
        User git
        IdentityFile ~/.ssh/id_ed25519_pessoal
        IdentitiesOnly yes
 
-   # Conta de Trabalho
    Host github-work
        HostName github.com
        User git
@@ -137,33 +135,14 @@ Em uma instalação recém-criada do WSL, o diretório `~/.ssh` ainda não exist
    chmod 600 ~/.ssh/config
    ```
 
-5. **Exibir e cadastrar as chaves públicas no GitHub:**
-   * Exibir chave **pessoal**:
-     ```bash
-     cat ~/.ssh/id_ed25519_pessoal.pub
-     ```
-   * Exibir chave de **trabalho**:
-     ```bash
-     cat ~/.ssh/id_ed25519_trabalho.pub
-     ```
-   * *Acesse cada conta no GitHub em **Settings > SSH and GPG keys > New SSH key** (ou [github.com/settings/ssh/new](https://github.com/settings/ssh/new)) e adicione a respectiva chave pública.*
-
-6. **Validar as conexões:**
-   * Testar conexão pessoal:
-     ```bash
-     ssh -T git@github.com
-     ```
-   * Testar conexão de trabalho:
-     ```bash
-     ssh -T git@github-work
-     ```
-   *(Digite `yes` na primeira vez para confiar no host. A resposta confirmará o usuário autenticado em cada conta)*
+5. **Cadastrar a chave pública no GitHub** (`cat ~/.ssh/id_ed25519_pessoal.pub`) e validar a conexão:
+   ```bash
+   ssh -T git@github.com
+   ```
 
 ---
 
 #### 3. Clonar este Repositório
-
-Com a chave SSH configurada e autorizada no GitHub, clone o repositório diretamente na pasta `~/.dotfiles`:
 
 ```bash
 git clone git@github.com:alexandredct/dotfiles.git ~/.dotfiles
@@ -174,30 +153,40 @@ cd ~/.dotfiles
 
 #### 4. Ajustar o Nome do Usuário (Se necessário)
 
-Se o nome do usuário Linux da nova máquina for diferente do configurado atualmente (`alexandre`):
-* Verifique o seu usuário atual rodando: `whoami`
-* Atualize o campo correspondente no arquivo `flake.nix` e no `home.nix`.
+Se o nome do usuário Linux da nova máquina for diferente de `alexandre`:
+* Verifique com `whoami`.
+* Ajuste o nome em `flake.nix` e `home.nix`.
 
 ---
 
 #### 5. Rodar a Primeira Compilação (Bootstrap)
 
-O Nix lerá o Flake local, baixará as ferramentas declaradas e criará os links simbólicos, fazendo o backup de arquivos conflitantes pré-existentes (como o `.bashrc` padrão):
+O Nix lerá o Flake local, baixará as ferramentas declaradas e criará os links simbólicos, fazendo o backup de arquivos conflitantes pré-existentes:
 
 ```bash
 nix run home-manager/master -- switch --flake .#alexandre -b backup
 ```
-*(Substitua `alexandre` pelo seu nome de usuário caso seja diferente)*
 
 ---
 
 #### 6. Recarregar o Shell
 
-Para que as novas ferramentas (como o *zoxide*), o novo prompt (*Starship*) e todos os aliases entrem em vigor imediatamente:
+Para ativar o Starship prompt, Zoxide e todos os aliases:
 
 ```bash
 exec bash
 ```
+
+---
+
+#### 7. Primeira Conexão com o Antigravity IDE
+
+Com a VPN ainda desconectada (para permitir o download único do servidor headless):
+
+```bash
+agy .
+```
+O Antigravity IDE abrirá no Windows, baixará e iniciará o servidor headless dentro do WSL e conectará automaticamente à distribuição ativa. Após esse primeiro download, a VPN corporativa pode ser reconectada normalmente.
 
 ---
 

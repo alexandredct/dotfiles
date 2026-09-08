@@ -44,23 +44,26 @@ Ao tentar conectar pelo Windows, surge o erro modal:
 > *Download failed from https://redirector.gvt1.com/.../Antigravity%20IDE-reh.tar.gz*
 
 #### Causa-Raiz:
-A extensão `antigravity-remote-wsl` roda um script Bash no WSL que tenta usar `wget` para baixar o pacote do servidor do Google CDN (`edgedl.me.gvt1.com` ou `redirector.gvt1.com`). Em novas distros:
-1. Podem faltar certificados de CA atualizados (`ca-certificates`).
-2. O CDN do Google retorna **HTTP 404** se o artefato público correspondente ao commit específico do cliente Windows não estiver aberto para download anônimo sem token na rota padrão.
-3. Se o script falhar, um arquivo vazio `~/.antigravity-ide-server/.installation_lock` pode permanecer no disco, bloqueando tentativas subsequentes.
+A extensão `antigravity-remote-wsl` roda um script Bash no WSL que tenta usar `wget` para baixar o pacote do servidor do Google CDN (`edgedl.me.gvt1.com` ou `redirector.gvt1.com`). As causas mais comuns são:
+1. **Interferência de VPN Corporativa (Causa Mais Comum)**: Firewalls e proxies com inspeção SSL ou políticas corporativas restritivas frequentemente interceptam requisições para domínios de edge/CDN do Google (`*.gvt1.com`, `edgedl.me.gvt1.com`), causando encerramento inesperado de handshake TLS (`SSL routines::unexpected eof`) ou falsos retornos de `HTTP 404: Not Found` nos redirects.
+2. **Falta de certificados de CA atualizados**: Em imagens mínimas do Ubuntu, a falta do pacote `ca-certificates` impede a validação da cadeia de confiança TLS.
+3. **Locks residuais**: Se o download falhar no meio, um arquivo vazio `~/.antigravity-ide-server/.installation_lock` permanece no disco, bloqueando qualquer nova tentativa de instalação.
 
 #### Solução:
-- **Limpeza de Locks:**
-  ```bash
-  rm -rf ~/.antigravity-ide-server
-  ```
-- **Instalação Manual / Cópia dos Binários:**
-  Como o servidor é puramente empacotado em `~/.antigravity-ide-server/bin/<versao>-<commit>`, é possível reutilizar os binários compilados de uma instalação funcional compactando e extraindo a pasta correspondente:
-  ```bash
-  # Extração direta no WSL:
-  mkdir -p ~/.antigravity-ide-server/bin
-  tar -xzf antigravity-server-<versao>.tar.gz -C ~/.antigravity-ide-server/bin/
-  ```
+1. **Desconectar da VPN temporariamente**:
+   Desconecte a VPN corporativa durante o primeiro handshake de conexão do Antigravity IDE ao WSL. Assim que o download de ~120MB for concluído e o servidor extraído, você pode reconectar a VPN e trabalhar normalmente.
+2. **Limpar Locks e Pastas Corrompidas**:
+   ```bash
+   rm -rf ~/.antigravity-ide-server
+   ```
+3. **Garantir os pacotes de rede e descompressão**:
+   ```bash
+   sudo apt update && sudo apt install -y curl wget ca-certificates tar gzip procps
+   ```
+4. **Reconectar via CLI do Terminal**:
+   ```bash
+   agy .
+   ```
 
 ---
 
