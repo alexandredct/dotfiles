@@ -392,41 +392,62 @@
         if [ -n "$auto_next" ]; then
           case "$auto_next" in
             alfa)
-              local last_alfa
-              last_alfa=$(git tag -l "*-alfa.*" --sort=-v:refname | head -n 1)
-              if [[ "$last_alfa" =~ ^(v[0-9]+\.[0-9]+\.[0-9]+-alfa\.)([0-9]+)$ ]]; then
-                local prefix="''${BASH_REMATCH[1]}"
-                local num="''${BASH_REMATCH[2]}"
-                new_tag="''${prefix}$((num + 1))"
+              # Identifica a versão base (vX.Y.Z) mais recente entre estáveis e pré-releases
+              local base_ver
+              base_ver=$(git tag -l "v*.*.*" --sort=-v:refname | sed -E 's/[-.](alfa|beta).*//' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
+
+              if [ -n "$base_ver" ]; then
+                # Procura a última tag alfa da base ativa (aceita tanto -alfa. quanto .alfa. na leitura)
+                local last_alfa_num
+                last_alfa_num=$(git tag -l "''${base_ver}-alfa.*" "''${base_ver}.alfa.*" --sort=-v:refname 2>/dev/null \
+                  | grep -Eo '(alfa\.)[0-9]+$' | cut -d. -f2 | sort -n | tail -n 1)
+
+                if [ -n "$last_alfa_num" ]; then
+                  new_tag="''${base_ver}-alfa.$((last_alfa_num + 1))"
+                else
+                  # Se a base atual já possui release estável (ex: v2.4.2 existe e não há alfa para ela),
+                  # sugere iniciar o patch seguinte em alfa (ex: v2.4.3-alfa.1)
+                  local is_exact_prod
+                  is_exact_prod=$(git tag -l "$base_ver")
+                  if [ -n "$is_exact_prod" ] && [[ "$base_ver" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+                    local p_maj="''${BASH_REMATCH[1]}"
+                    local p_min="''${BASH_REMATCH[2]}"
+                    local p_pat="''${BASH_REMATCH[3]}"
+                    new_tag="v''${p_maj}.''${p_min}.$((p_pat + 1))-alfa.1"
+                  else
+                    new_tag="''${base_ver}-alfa.1"
+                  fi
+                fi
               else
-                echo -e "\033[1;33mNenhuma tag alfa encontrada para incrementar.\033[0m Informe manualmente (ex: gtag v1.0.0-alfa.1)."
+                echo -e "\033[1;33mNenhuma tag base encontrada para calcular próximo alfa.\033[0m Informe manualmente (ex: gtag v1.0.0-alfa.1)."
                 return 1
               fi
               ;;
             beta)
-              local last_beta
-              last_beta=$(git tag -l "*-beta.*" --sort=-v:refname | head -n 1)
-              if [[ "$last_beta" =~ ^(v[0-9]+\.[0-9]+\.[0-9]+-beta\.)([0-9]+)$ ]]; then
-                local prefix="''${BASH_REMATCH[1]}"
-                local num="''${BASH_REMATCH[2]}"
-                new_tag="''${prefix}$((num + 1))"
-              else
-                # Se não tem beta ainda, extrai da última alfa e inicia com beta.1
-                local last_alfa
-                last_alfa=$(git tag -l "*-alfa.*" --sort=-v:refname | head -n 1)
-                if [[ "$last_alfa" =~ ^(v[0-9]+\.[0-9]+\.[0-9]+)-alfa\.[0-9]+$ ]]; then
-                  new_tag="''${BASH_REMATCH[1]}-beta.1"
+              local base_ver
+              base_ver=$(git tag -l "v*.*.*" --sort=-v:refname | sed -E 's/[-.](alfa|beta).*//' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
+
+              if [ -n "$base_ver" ]; then
+                local last_beta_num
+                last_beta_num=$(git tag -l "''${base_ver}-beta.*" "''${base_ver}.beta.*" --sort=-v:refname 2>/dev/null \
+                  | grep -Eo '(beta\.)[0-9]+$' | cut -d. -f2 | sort -n | tail -n 1)
+
+                if [ -n "$last_beta_num" ]; then
+                  new_tag="''${base_ver}-beta.$((last_beta_num + 1))"
                 else
-                  echo -e "\033[1;33mNenhuma tag base encontrada.\033[0m Informe manualmente (ex: gtag v1.0.0-beta.1)."
-                  return 1
+                  # Primeira tag beta desta versão base
+                  new_tag="''${base_ver}-beta.1"
                 fi
+              else
+                echo -e "\033[1;33mNenhuma tag base encontrada para calcular próximo beta.\033[0m Informe manualmente (ex: gtag v1.0.0-beta.1)."
+                return 1
               fi
               ;;
             prod|release)
               # Prioridade 1: promover última tag beta ou alfa para prod
               local last_pre
-              last_pre=$(git tag -l "*-beta.*" "*-alfa.*" --sort=-v:refname | head -n 1)
-              if [[ "$last_pre" =~ ^(v[0-9]+\.[0-9]+\.[0-9]+)-(beta|alfa)\.[0-9]+$ ]]; then
+              last_pre=$(git tag -l "v*.*.*-beta.*" "v*.*.*-alfa.*" "v*.*.*.beta.*" "v*.*.*.alfa.*" --sort=-v:refname | head -n 1)
+              if [[ "$last_pre" =~ ^(v[0-9]+\.[0-9]+\.[0-9]+)[-.](beta|alfa)\.[0-9]+$ ]]; then
                 new_tag="''${BASH_REMATCH[1]}"
               else
                 # Prioridade 2: se não há beta/alfa pendente, incrementa o patch da última versão estável
@@ -495,29 +516,25 @@
           return 1
         fi
 
-        local pattern=""
-        if [[ "$new_tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-alfa\.[0-9]+$ ]]; then
-          pattern="*-alfa.*"
-        elif [[ "$new_tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-beta\.[0-9]+$ ]]; then
-          pattern="*-beta.*"
+        local last_tag=""
+        if [[ "$new_tag" =~ ^(v[0-9]+\.[0-9]+\.[0-9]+)-alfa\.[0-9]+$ ]]; then
+          local base="''${BASH_REMATCH[1]}"
+          last_tag=$(git tag -l "''${base}-alfa.*" "''${base}.alfa.*" "*-alfa.*" "*alfa*" --sort=-v:refname 2>/dev/null | head -n 1)
+        elif [[ "$new_tag" =~ ^(v[0-9]+\.[0-9]+\.[0-9]+)-beta\.[0-9]+$ ]]; then
+          local base="''${BASH_REMATCH[1]}"
+          last_tag=$(git tag -l "''${base}-beta.*" "''${base}.beta.*" --sort=-v:refname 2>/dev/null | head -n 1)
+          # Fallback se for o primeiro beta: pega o último alfa dessa base ou geral
+          if [ -z "$last_tag" ]; then
+            last_tag=$(git tag -l "''${base}-alfa.*" "''${base}.alfa.*" "*-alfa.*" "*alfa*" --sort=-v:refname 2>/dev/null | head -n 1)
+          fi
         elif [[ "$new_tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-          pattern="v[0-9]*.[0-9]*.[0-9]*"
+          # Se criando versão final, busca o último beta, alfa ou versão estável anterior
+          last_tag=$(git tag -l "''${new_tag}-beta.*" "''${new_tag}.beta.*" "''${new_tag}-alfa.*" "''${new_tag}.alfa.*" --sort=-v:refname 2>/dev/null | head -n 1)
+          if [ -z "$last_tag" ]; then
+            last_tag=$(git tag -l "v*.*.*" --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
+          fi
         else
-          pattern="*"
-        fi
-
-        local last_tag
-        if [ "$pattern" = "v[0-9]*.[0-9]*.[0-9]*" ]; then
-          last_tag=$(git tag -l "v*.*.*" --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
-        else
-          last_tag=$(git tag -l "$pattern" --sort=-v:refname | head -n 1)
-        fi
-
-        # Fallback se for a primeira tag de beta ou prod
-        if [ -z "$last_tag" ] && [[ "$new_tag" =~ -beta\. ]]; then
-          last_tag=$(git tag -l "*-alfa.*" --sort=-v:refname | head -n 1)
-        elif [ -z "$last_tag" ] && [[ "$new_tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-          last_tag=$(git tag -l "*-beta.*" --sort=-v:refname | head -n 1)
+          last_tag=$(git tag -l --sort=-v:refname | head -n 1)
         fi
 
         local cmd log_output msg
