@@ -346,17 +346,25 @@
           case "$1" in
             -h|--help)
               echo -e "Uso:"
-              echo -e "  gtag <tag>                 -> Cria a tag com confirmação"
-              echo -e "  gtag -d <tag>              -> [Dry-Run] Apenas exibe o que seria feito"
-              echo -e "  gtag --next alfa           -> Sugere e cria a próxima tag alfa incremental"
-              echo -e "  gtag -d --next alfa        -> Apenas mostra qual seria a próxima tag alfa"
-              echo -e "  gtag --next beta           -> Sugere e cria a próxima tag beta incremental"
-              echo -e "  gtag -d --next beta        -> Apenas mostra qual seria a próxima tag beta"
-              echo -e "  gtag --next prod|release   -> Promove de beta/alfa para prod (ou patch de prod)"
-              echo -e "  gtag --next patch          -> Incrementa patch estável (ex: v1.2.3 -> v1.2.4)"
-              echo -e "  gtag --next minor          -> Incrementa minor estável (ex: v1.2.3 -> v1.3.0)"
-              echo -e "  gtag --next major          -> Incrementa major estável (ex: v1.2.3 -> v2.0.0)"
-              echo -e "  gtag -h, --help            -> Exibe esta ajuda"
+              echo -e "  gtag [opções] <tag>"
+              echo -e "  gtag [opções] --next <alvo>"
+              echo -e ""
+              echo -e "Alvos para --next:"
+              echo -e "  alfa                       -> Sugere e cria a próxima tag alfa incremental"
+              echo -e "  beta                       -> Sugere e cria a próxima tag beta incremental"
+              echo -e "  prod | release             -> Promove de beta/alfa para prod (ou patch de prod)"
+              echo -e "  patch                      -> Incrementa patch estável (ex: v1.2.3 -> v1.2.4)"
+              echo -e "  minor                      -> Incrementa minor estável (ex: v1.2.3 -> v1.3.0)"
+              echo -e "  major                      -> Incrementa major estável (ex: v1.2.3 -> v2.0.0)"
+              echo -e ""
+              echo -e "Opções:"
+              echo -e "  -d, --dry-run              -> [Dry-Run] Apenas simula e exibe o que seria feito"
+              echo -e "  -h, --help                 -> Exibe esta ajuda"
+              echo -e ""
+              echo -e "Exemplos:"
+              echo -e "  gtag v2.6.0                -> Cria a tag v2.6.0 interativamente"
+              echo -e "  gtag -d --next minor       -> [Dry-Run] Simula qual seria a próxima minor estável"
+              echo -e "  gtag -d --next prod        -> [Dry-Run] Simula a promoção para produção"
               return 0
               ;;
             -d|--dry-run)
@@ -481,17 +489,9 @@
         if [ -z "$new_tag" ]; then
           echo -e "\033[1;31mErro:\033[0m Informe o nome da tag ou use --next."
           echo -e "Uso:"
-          echo -e "  gtag <tag>                 -> Cria a tag com confirmação"
-          echo -e "  gtag -d <tag>              -> [Dry-Run] Apenas exibe o que seria feito"
-          echo -e "  gtag --next alfa           -> Sugere e cria a próxima tag alfa incremental"
-          echo -e "  gtag -d --next alfa        -> Apenas mostra qual seria a próxima tag alfa"
-          echo -e "  gtag --next beta           -> Sugere e cria a próxima tag beta incremental"
-          echo -e "  gtag -d --next beta        -> Apenas mostra qual seria a próxima tag beta"
-          echo -e "  gtag --next prod|release   -> Promove de beta/alfa para prod (ou patch de prod)"
-          echo -e "  gtag --next patch          -> Incrementa patch estável (ex: v1.2.3 -> v1.2.4)"
-          echo -e "  gtag --next minor          -> Incrementa minor estável (ex: v1.2.3 -> v1.3.0)"
-          echo -e "  gtag --next major          -> Incrementa major estável (ex: v1.2.3 -> v2.0.0)"
-          echo -e "  gtag -h, --help            -> Exibe esta ajuda"
+          echo -e "  gtag [opções] <tag>"
+          echo -e "  gtag [opções] --next <alvo>"
+          echo -e "Consulte 'gtag -h' ou 'gtag --help' para ver todos os alvos e opções disponíveis."
           return 1
         fi
 
