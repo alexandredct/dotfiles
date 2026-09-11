@@ -340,6 +340,17 @@
 
         while [ $# -gt 0 ]; do
           case "$1" in
+            -h|--help)
+              echo -e "Uso:"
+              echo -e "  gtag <tag>                 -> Cria a tag com confirmação"
+              echo -e "  gtag -d <tag>              -> [Dry-Run] Apenas exibe o que seria feito"
+              echo -e "  gtag --next alfa           -> Sugere e cria a próxima tag alfa incremental"
+              echo -e "  gtag -d --next alfa        -> Apenas mostra qual seria a próxima tag alfa"
+              echo -e "  gtag --next beta           -> Sugere e cria a próxima tag beta incremental"
+              echo -e "  gtag -d --next beta        -> Apenas mostra qual seria a próxima tag beta"
+              echo -e "  gtag -h, --help            -> Exibe esta ajuda"
+              return 0
+              ;;
             -d|--dry-run)
               dry_run=true
               shift
@@ -410,6 +421,8 @@
           echo -e "  gtag --next alfa           -> Sugere e cria a próxima tag alfa incremental"
           echo -e "  gtag -d --next alfa        -> Apenas mostra qual seria a próxima tag alfa"
           echo -e "  gtag --next beta           -> Sugere e cria a próxima tag beta incremental"
+          echo -e "  gtag -d --next beta        -> Apenas mostra qual seria a próxima tag beta"
+          echo -e "  gtag -h, --help            -> Exibe esta ajuda"
           return 1
         fi
 
