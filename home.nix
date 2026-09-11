@@ -332,7 +332,11 @@
       #   gtag v1.0.0-alfa.30          -> Cria a tag com confirmação interativa
       #   gtag -d v1.0.0-alfa.30       -> [Dry-Run] Apenas exibe o changelog e qual tag seria criada
       #   gtag --next alfa             -> Calcula automaticamente a próxima tag alfa incremental
-      #   gtag -d --next alfa          -> Só mostra qual seria a próxima tag alfa calculada
+      #   gtag --next beta             -> Calcula automaticamente a próxima tag beta incremental
+      #   gtag --next prod|release     -> Promove última tag alfa/beta para prod ou incrementa patch
+      #   gtag --next patch            -> Incrementa o patch da última tag estável (vX.Y.Z+1)
+      #   gtag --next minor            -> Incrementa a minor da última tag estável (vX.Y+1.0)
+      #   gtag --next major            -> Incrementa a major da última tag estável (vX+1.0.0)
       gtag() {
         local dry_run=false
         local auto_next=""
@@ -348,6 +352,10 @@
               echo -e "  gtag -d --next alfa        -> Apenas mostra qual seria a próxima tag alfa"
               echo -e "  gtag --next beta           -> Sugere e cria a próxima tag beta incremental"
               echo -e "  gtag -d --next beta        -> Apenas mostra qual seria a próxima tag beta"
+              echo -e "  gtag --next prod|release   -> Promove de beta/alfa para prod (ou patch de prod)"
+              echo -e "  gtag --next patch          -> Incrementa patch estável (ex: v1.2.3 -> v1.2.4)"
+              echo -e "  gtag --next minor          -> Incrementa minor estável (ex: v1.2.3 -> v1.3.0)"
+              echo -e "  gtag --next major          -> Incrementa major estável (ex: v1.2.3 -> v2.0.0)"
               echo -e "  gtag -h, --help            -> Exibe esta ajuda"
               return 0
               ;;
@@ -406,8 +414,65 @@
                 fi
               fi
               ;;
+            prod|release)
+              # Prioridade 1: promover última tag beta ou alfa para prod
+              local last_pre
+              last_pre=$(git tag -l "*-beta.*" "*-alfa.*" --sort=-v:refname | head -n 1)
+              if [[ "$last_pre" =~ ^(v[0-9]+\.[0-9]+\.[0-9]+)-(beta|alfa)\.[0-9]+$ ]]; then
+                new_tag="''${BASH_REMATCH[1]}"
+              else
+                # Prioridade 2: se não há beta/alfa pendente, incrementa o patch da última versão estável
+                local last_prod
+                last_prod=$(git tag -l "v*.*.*" --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
+                if [[ "$last_prod" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+                  local major="''${BASH_REMATCH[1]}"
+                  local minor="''${BASH_REMATCH[2]}"
+                  local patch="''${BASH_REMATCH[3]}"
+                  new_tag="v''${major}.''${minor}.$((patch + 1))"
+                else
+                  echo -e "\033[1;33mNenhuma tag base estável ou pré-release encontrada.\033[0m Informe manualmente (ex: gtag v1.0.0)."
+                  return 1
+                fi
+              fi
+              ;;
+            patch)
+              local last_prod
+              last_prod=$(git tag -l "v*.*.*" --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
+              if [[ "$last_prod" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+                local major="''${BASH_REMATCH[1]}"
+                local minor="''${BASH_REMATCH[2]}"
+                local patch="''${BASH_REMATCH[3]}"
+                new_tag="v''${major}.''${minor}.$((patch + 1))"
+              else
+                echo -e "\033[1;33mNenhuma tag estável encontrada para calcular patch.\033[0m Informe manualmente (ex: gtag v1.0.0)."
+                return 1
+              fi
+              ;;
+            minor)
+              local last_prod
+              last_prod=$(git tag -l "v*.*.*" --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
+              if [[ "$last_prod" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+                local major="''${BASH_REMATCH[1]}"
+                local minor="''${BASH_REMATCH[2]}"
+                new_tag="v''${major}.$((minor + 1)).0"
+              else
+                echo -e "\033[1;33mNenhuma tag estável encontrada para calcular minor.\033[0m Informe manualmente (ex: gtag v1.0.0)."
+                return 1
+              fi
+              ;;
+            major)
+              local last_prod
+              last_prod=$(git tag -l "v*.*.*" --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
+              if [[ "$last_prod" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+                local major="''${BASH_REMATCH[1]}"
+                new_tag="v$((major + 1)).0.0"
+              else
+                echo -e "\033[1;33mNenhuma tag estável encontrada para calcular major.\033[0m Informe manualmente (ex: gtag v1.0.0)."
+                return 1
+              fi
+              ;;
             *)
-              echo -e "\033[1;31mOpção inválida para --next.\033[0m Use: alfa ou beta."
+              echo -e "\033[1;31mOpção inválida para --next.\033[0m Use: alfa, beta, prod, release, patch, minor ou major."
               return 1
               ;;
           esac
@@ -422,6 +487,10 @@
           echo -e "  gtag -d --next alfa        -> Apenas mostra qual seria a próxima tag alfa"
           echo -e "  gtag --next beta           -> Sugere e cria a próxima tag beta incremental"
           echo -e "  gtag -d --next beta        -> Apenas mostra qual seria a próxima tag beta"
+          echo -e "  gtag --next prod|release   -> Promove de beta/alfa para prod (ou patch de prod)"
+          echo -e "  gtag --next patch          -> Incrementa patch estável (ex: v1.2.3 -> v1.2.4)"
+          echo -e "  gtag --next minor          -> Incrementa minor estável (ex: v1.2.3 -> v1.3.0)"
+          echo -e "  gtag --next major          -> Incrementa major estável (ex: v1.2.3 -> v2.0.0)"
           echo -e "  gtag -h, --help            -> Exibe esta ajuda"
           return 1
         fi
