@@ -709,6 +709,7 @@
     bat # Substituto do 'cat'      | Ex: bat src/app.env.exemplo
     ripgrep # Busca veloz em arquivos  | Ex: rg "use Spatie"
     fd # Busca veloz de arquivos  | Ex: fd "\.php$"
+    tree # Visualizador de estrutura de diretórios em árvore | Ex: tree
 
     # ------------------------------------------------------------------------
     # Processamento de Dados
