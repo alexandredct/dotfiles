@@ -138,8 +138,64 @@
       # Configurações do VS Code (settings.json)
       userSettings = {
         "editor.fontFamily" = "'MesloLGS NF', 'Droid Sans Mono', 'monospace'";
-        "terminal.integrated.fontFamily" = "'MesloLGS NF'";
         "editor.fontLigatures" = true;
+        "editor.formatOnSave" = true;
+
+        "terminal.integrated.fontFamily" = "'MesloLGS NF'";
+
+        # ==========================================
+        # PHP e Xdebug
+        # ==========================================
+        "php.debug.port" = [ 9003 ];
+        # Traz os logs de conexão do Xdebug para o console do VS Code (excelente para debugar mapeamento de volumes no Docker)
+        "php.debug.log" = true;
+        # Valida sintaxe nativa do PHP ao salvar
+        "php.validate.enable" = true;
+        "php.validate.run" = "onSave";
+
+        # ==========================================
+        # Git e GitLens
+        # ==========================================
+        "git.autofetch" = true;
+        "git.confirmSync" = false;
+        "git.enableSmartCommit" = true;
+        # Deixa o CodeLens do GitLens mais limpo e focado
+        "gitlens.codeLens.enabled" = true;
+        "gitlens.currentLine.enabled" = true;
+
+        # ==========================================
+        # Otimização de Busca (Performance)
+        # ==========================================
+        # Remove lixo de compilação e dependências das buscas do painel lateral (Ctrl+Shift+F)
+        "search.exclude" = {
+          "**/node_modules" = true;
+          "**/vendor" = true;
+          "**/target" = true; # Compilados do Maven/Java
+          "**/.git" = true;
+        };
+        # Oculta arquivos desnecessários da árvore de arquivos
+        "files.exclude" = {
+          "**/.git" = true;
+          "**/.DS_Store" = true;
+        };
+
+        # ==========================================
+        # Produtividade e Visual da IDE
+        # ==========================================
+        # Colore os pares de chaves e parênteses (essencial para blocos grandes de código)
+        "editor.bracketPairColorization.enabled" = true;
+        "editor.guides.bracketPairs" = "active";
+        # Mostra espaços extras perdidos no final de linhas ou entre blocos
+        "editor.renderWhitespace" = "boundary";
+        "editor.smoothScrolling" = true;
+        "terminal.integrated.smoothScrolling" = true;
+        # Inicia com um editor em branco ao invés da tela de boas-vindas
+        "workbench.startupEditor" = "none";
+
+        # ==========================================
+        # Privacidade
+        # ==========================================
+        "telemetry.telemetryLevel" = "off";
       };
     };
   };
