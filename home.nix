@@ -65,8 +65,25 @@
       };
 
       init.defaultBranch = "main";
-      pull.rebase = true;
-      fetch.prune = true; # Automatiza a limpeza de metadados remotos obsoletos
+      pull.ff = "only"; # Apenas fast-forward no pull (evita rebases e merges acidentais)
+
+      # Sincronização remota e limpeza automática de metadados e tags obsoletas
+      fetch = {
+        prune = true;
+        pruneTags = true;
+      };
+
+      # Ordenação semântica padrão para tags (ex: v1.9 < v1.10)
+      tag.sort = "version:refname";
+
+      # Facilita push de novas branches configurando o upstream automaticamente
+      push.autoSetupRemote = true;
+
+      # Reutiliza resoluções de conflitos já executadas
+      rerere.enabled = true;
+
+      # Em caso de rebase manual, guarda e restaura alterações locais não commitadas
+      rebase.autoStash = true;
 
       # Força o uso do UTF-8
       i18n = {
@@ -749,14 +766,17 @@
       # Sincronização segura: baixa atualizações e já poda referências locais obsoletas
       gfp = "git fetch --prune"; # Ex: gfp
 
+      # Sincronização estrita de tags: remove tags locais órfãs e sincroniza com o remoto
+      git-sync-tags = "git tag -l | xargs -r git tag -d && git fetch --tags --prune origin";
+
       # Visualização limpa: plota a árvore dos últimos 20 commits com branches
       glog = "git log --oneline --graph -n 20"; # Ex: glog
 
       # Limpeza Gone: Deleta forçadamente (-D) branches locais que foram apagadas no remoto
       gclean-gone = "git branch -vv | grep ': gone]' | awk '{print $1}' | xargs -r git branch -D";
 
-      # Limpeza Merged: Deleta de forma segura (-d) branches já unidas (exceto main/master)
-      gclean-merged = "git branch --merged | grep -v -E '^\\*|main|master' | xargs -r -n 1 git branch -d";
+      # Limpeza Merged: Deleta de forma segura (-d) branches já unidas (protegendo branches base)
+      gclean-merged = "git branch --merged | grep -v -E '^\\*|main|master|develop|homolog|teste' | xargs -r -n 1 git branch -d";
 
       # ======================================================================
       # DOCKER & LARAVEL
