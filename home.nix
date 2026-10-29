@@ -425,10 +425,12 @@
       #   gtag --next patch            -> Incrementa o patch da última tag estável (vX.Y.Z+1)
       #   gtag --next minor            -> Incrementa a minor da última tag estável (vX.Y+1.0)
       #   gtag --next major            -> Incrementa a major da última tag estável (vX+1.0.0)
+      #   gtag -f / --fetch            -> Faz git fetch --tags --prune antes de calcular/criar a tag
       gtag() {
         local dry_run=false
         local auto_next=""
         local new_tag=""
+        local do_fetch=false
 
         while [ $# -gt 0 ]; do
           case "$1" in
@@ -447,16 +449,22 @@
               echo -e ""
               echo -e "Opções:"
               echo -e "  -d, --dry-run              -> [Dry-Run] Apenas simula e exibe o que seria feito"
+              echo -e "  -f, --fetch                -> Executa git fetch --tags --prune antes do cálculo"
               echo -e "  -h, --help                 -> Exibe esta ajuda"
               echo -e ""
               echo -e "Exemplos:"
               echo -e "  gtag v2.6.0                -> Cria a tag v2.6.0 interativamente"
               echo -e "  gtag -d --next minor       -> [Dry-Run] Simula qual seria a próxima minor estável"
+              echo -e "  gtag -f --next alfa        -> Sincroniza tags remotas e calcula o próximo alfa"
               echo -e "  gtag -d --next prod        -> [Dry-Run] Simula a promoção para produção"
               return 0
               ;;
             -d|--dry-run)
               dry_run=true
+              shift
+              ;;
+            -f|--fetch)
+              do_fetch=true
               shift
               ;;
             -n|--next)
@@ -476,6 +484,12 @@
           return 1
         fi
 
+        # Sincronização remota opcional
+        if [ "$do_fetch" = true ]; then
+          echo -e "\033[1;36m» Sincronizando tags com o remoto (git fetch --tags --prune)...\033[0m"
+          git fetch --tags --prune origin 2>/dev/null || git fetch --tags --prune 2>/dev/null || true
+        fi
+
         # Cálculo automático da próxima tag se solicitado via --next
         if [ -n "$auto_next" ]; then
           case "$auto_next" in
@@ -485,6 +499,13 @@
               base_ver=$(git tag -l "v*.*.*" --sort=-v:refname | sed -E 's/[-.](alfa|beta).*//' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
 
               if [ -n "$base_ver" ]; then
+                # Alerta se já houver tag beta para esta mesma versão base (prevenção de regressão de estágio)
+                local existing_betas
+                existing_betas=$(git tag -l "''${base_ver}-beta.*" "''${base_ver}.beta.*" --sort=-v:refname 2>/dev/null | tr '\n' ' ')
+                if [ -n "$existing_betas" ]; then
+                  echo -e "\033[1;33mAviso:\033[0m Já existem tags beta para a base ''${base_ver} (''${existing_betas% }). Criar tag alfa pode representar regressão de ciclo."
+                fi
+
                 # Procura a última tag alfa da base ativa (aceita tanto -alfa. quanto .alfa. na leitura)
                 local last_alfa_num
                 last_alfa_num=$(git tag -l "''${base_ver}-alfa.*" "''${base_ver}.alfa.*" --sort=-v:refname 2>/dev/null \
@@ -604,25 +625,42 @@
           return 1
         fi
 
+        # Validação se a tag já existe localmente
+        if git rev-parse "$new_tag" >/dev/null 2>&1; then
+          echo -e "\033[1;31mErro:\033[0m A tag '$new_tag' já existe localmente neste repositório."
+          return 1
+        fi
+
+        # Verificação se o remoto já possui a tag (evita conflito posterior no push)
+        if git ls-remote --tags origin "refs/tags/$new_tag" 2>/dev/null | grep -q "refs/tags/$new_tag"; then
+          echo -e "\033[1;31mErro:\033[0m A tag '$new_tag' já existe no repositório remoto (origin)."
+          return 1
+        fi
+
+        # Cálculo da tag anterior mais relevante para o log:
+        # Prioridade 1: tag ancestral direta mais recente na história atual de commits (git describe)
         local last_tag=""
-        if [[ "$new_tag" =~ ^(v[0-9]+\.[0-9]+\.[0-9]+)-alfa\.[0-9]+$ ]]; then
-          local base="''${BASH_REMATCH[1]}"
-          last_tag=$(git tag -l "''${base}-alfa.*" "''${base}.alfa.*" "*-alfa.*" "*alfa*" --sort=-v:refname 2>/dev/null | head -n 1)
-        elif [[ "$new_tag" =~ ^(v[0-9]+\.[0-9]+\.[0-9]+)-beta\.[0-9]+$ ]]; then
-          local base="''${BASH_REMATCH[1]}"
-          last_tag=$(git tag -l "''${base}-beta.*" "''${base}.beta.*" --sort=-v:refname 2>/dev/null | head -n 1)
-          # Fallback se for o primeiro beta: pega o último alfa dessa base ou geral
-          if [ -z "$last_tag" ]; then
-            last_tag=$(git tag -l "''${base}-alfa.*" "''${base}.alfa.*" "*-alfa.*" "*alfa*" --sort=-v:refname 2>/dev/null | head -n 1)
+        last_tag=$(git describe --tags --abbrev=0 2>/dev/null || true)
+
+        # Fallback se git describe não encontrar (ex: commit atual não possui tags ancestrais)
+        if [ -z "$last_tag" ]; then
+          if [[ "$new_tag" =~ ^(v[0-9]+\.[0-9]+\.[0-9]+)-alfa\.[0-9]+$ ]]; then
+            local base="''${BASH_REMATCH[1]}"
+            last_tag=$(git tag -l "''${base}-alfa.*" "''${base}.alfa.*" --sort=-v:refname 2>/dev/null | head -n 1)
+          elif [[ "$new_tag" =~ ^(v[0-9]+\.[0-9]+\.[0-9]+)-beta\.[0-9]+$ ]]; then
+            local base="''${BASH_REMATCH[1]}"
+            last_tag=$(git tag -l "''${base}-beta.*" "''${base}.beta.*" --sort=-v:refname 2>/dev/null | head -n 1)
+            if [ -z "$last_tag" ]; then
+              last_tag=$(git tag -l "''${base}-alfa.*" "''${base}.alfa.*" --sort=-v:refname 2>/dev/null | head -n 1)
+            fi
+          elif [[ "$new_tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            last_tag=$(git tag -l "''${new_tag}-beta.*" "''${new_tag}.beta.*" "''${new_tag}-alfa.*" "''${new_tag}.alfa.*" --sort=-v:refname 2>/dev/null | head -n 1)
+            if [ -z "$last_tag" ]; then
+              last_tag=$(git tag -l "v*.*.*" --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
+            fi
+          else
+            last_tag=$(git tag -l --sort=-v:refname | head -n 1)
           fi
-        elif [[ "$new_tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-          # Se criando versão final, busca o último beta, alfa ou versão estável anterior
-          last_tag=$(git tag -l "''${new_tag}-beta.*" "''${new_tag}.beta.*" "''${new_tag}-alfa.*" "''${new_tag}.alfa.*" --sort=-v:refname 2>/dev/null | head -n 1)
-          if [ -z "$last_tag" ]; then
-            last_tag=$(git tag -l "v*.*.*" --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
-          fi
-        else
-          last_tag=$(git tag -l --sort=-v:refname | head -n 1)
         fi
 
         local cmd log_output msg
