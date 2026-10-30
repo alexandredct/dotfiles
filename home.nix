@@ -208,6 +208,10 @@
         "terminal.integrated.smoothScrolling" = true;
         # Inicia com um editor em branco ao invés da tela de boas-vindas
         "workbench.startupEditor" = "none";
+        # Normalização de finais de linha e whitespace
+        "files.insertFinalNewline" = true;
+        "files.trimTrailingWhitespace" = true;
+        "files.trimFinalNewlines" = true;
 
         # ==========================================
         # Privacidade
