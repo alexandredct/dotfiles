@@ -52,32 +52,32 @@ O padrão de workspaces multi-root (`.code-workspace`) suporta nativamente a cha
 Para isolamento completo (onde apenas as extensões de uma stack específica ficam ativas e instaladas na memória), o VS Code e Antigravity suportam **Perfis** (Profiles).
 
 #### Criação de Perfis Recomendados:
-1. **UERJ - Java:** Apenas extensões de desenvolvimento Java e Spring Boot.
-2. **UERJ - PHP:** Apenas extensões PHP, Laravel, Blade e Xdebug.
-3. **UERJ - Fullstack:** Suíte completa com Java, PHP e ferramentas web.
-4. **UERJ - Infra:** Extensões de Nix, Python, Docker e Remote SSH.
+1. **Java:** Apenas extensões de desenvolvimento Java e Spring Boot.
+2. **PHP:** Apenas extensões PHP, Laravel, Blade e Xdebug.
+3. **Fullstack:** Suíte completa com Java, PHP e ferramentas web.
+4. **Infra:** Extensões de Nix, Python, Docker e Remote SSH.
 
 #### Invocação pelo Terminal:
 Tanto o `code` quanto o `antigravity-ide` aceitam a flag `--profile`:
 
 ```bash
 # Abrir no VS Code com perfil específico
-code --profile "UERJ - Java" ~/.dotfiles-uerj/workspaces/vscode/uerj-assiste.code-workspace
+code --profile "Java" ~/.dotfiles-uerj/workspaces/vscode/exemplo-backend.code-workspace
 
 # Abrir no Antigravity IDE com perfil específico
-antigravity-ide --profile "UERJ - PHP" --file-uri "vscode-remote://wsl+Ubuntu-26.04/..."
+antigravity-ide --profile "PHP" --file-uri "vscode-remote://wsl+Ubuntu-26.04/..."
 ```
 
 ---
 
-## 3. Matriz de Extensões por Stack nos Workspaces UERJ
+## 3. Matriz de Extensões Recomendadas por Stack
 
-| Stack | Workspaces Principais | Extensões Recomendadas |
+| Stack | Tipo de Projeto | Extensões Recomendadas |
 | :--- | :--- | :--- |
-| **Java / Spring Boot** | `uerj-assiste`, `uerj-sfs`, `uerj-siext`, `uerj-validador-assinaturas`, `uerj-microservicos`, `uerj-springboot-base` | • `vscjava.vscode-java-pack`<br>• `vscjava.vscode-maven`<br>• `vscjava.vscode-java-dependency`<br>• `vscjava.vscode-java-debug`<br>• `ms-azuretools.vscode-docker`<br>• `eamodio.gitlens` |
-| **PHP / Laravel / Legados** | `uerj-laravel-base`, `uerj-novo-prematricula`, `uerj-spo`, `uerj-sig`, `uerj-sabm`, `uerj-pessoa`, `uerj-sie` | • `devsense.phptools-vscode`<br>• `xdebug.php-debug`<br>• `laravel.vscode-laravel`<br>• `amiralizadeh9480.laravel-extra-intellisense`<br>• `ms-azuretools.vscode-docker`<br>• `eamodio.gitlens` |
-| **Fullstack (Híbrido)** | `uerj-euerj`, `uerj-templates` | Ambas as suítes (Java + PHP) com ferramentas de containers e Git |
-| **Infra & Dotfiles** | `dotfiles-uerj` | • `bbenoist.nix`<br>• `ms-azuretools.vscode-docker`<br>• `ms-vscode-remote.remote-ssh`<br>• `eamodio.gitlens`<br>• `ms-python.python` |
+| **Java / Spring Boot** | Microsserviços e APIs corporativas Java | • `vscjava.vscode-java-pack`<br>• `vscjava.vscode-maven`<br>• `vscjava.vscode-java-dependency`<br>• `vscjava.vscode-java-debug`<br>• `ms-azuretools.vscode-docker`<br>• `eamodio.gitlens` |
+| **PHP / Laravel / Legados** | Aplicações modulares Laravel, APIs REST e sistemas legados | • `devsense.phptools-vscode`<br>• `xdebug.php-debug`<br>• `laravel.vscode-laravel`<br>• `amiralizadeh9480.laravel-extra-intellisense`<br>• `ms-azuretools.vscode-docker`<br>• `eamodio.gitlens` |
+| **Fullstack (Híbrido)** | Monorepos e templates corporativos | Ambas as suítes (Java + PHP) com ferramentas de containers e Git |
+| **Infra & Dotfiles** | Repositórios de infraestrutura e automações Nix | • `bbenoist.nix`<br>• `ms-azuretools.vscode-docker`<br>• `ms-vscode-remote.remote-ssh`<br>• `eamodio.gitlens`<br>• `ms-python.python` |
 
 ---
 
