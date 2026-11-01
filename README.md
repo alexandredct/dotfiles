@@ -232,4 +232,7 @@ Sempre que desejar adicionar um novo pacote, criar um alias ou alterar uma confi
 
 * [Troubleshooting & Arquitetura: Antigravity IDE / VS Code Server no WSL](docs/troubleshooting-antigravity-wsl.md): Resolução detalhada de problemas de download do servidor remoto, variáveis de ambiente para automação do Home Manager (`DONT_PROMPT_WSL_INSTALL`) e compatibilização de nomes de distribuição WSL.
 * [Gestão de Extensões por Workspace no VS Code e Antigravity IDE](docs/gestao-extensoes-workspaces.md): Como gerenciar, isolar stacks (Java, PHP, Fullstack, Infra) e automatizar extensões via `extensions.recommendations` e perfis (`--profile`).
+* [Arquitetura e Requisitos de Execução de Modelos de IA Localmente](docs/ia-local-arquitetura-e-requisitos.md): Funcionamento de inferência local (Prefill vs. Decoding), quantização GGUF, cálculo de VRAM/RAM, impacto de Single vs. Dual-Channel e decisão arquitetural entre repositórios.
+* [Guia de Configuração de IA Local por Máquina (Avell C62 LIV e Dell OptiPlex 7070)](docs/ia-local-setup-maquinas.md): Diagnóstico completo de hardware (HWiNFO64) e passo a passo reproduzível de instalação do Ollama no WSL2 com otimizações para GPU GTX 1650 (4 GB) e CPU Core i9-9900 (16 GB).
+* [Catálogo de Modelos Locais, Casos de Uso e Avaliação de Assinaturas](docs/ia-local-modelos-e-assinaturas.md): Modelos recomendados por máquina (`qwen2.5-coder`, `llama3.1`, `deepseek-r1`), viabilidade para Code Review, Docs e Testes, e comparativo estratégico entre Gemini Pro, Claude Pro e Cursor Pro.
 
