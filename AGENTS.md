@@ -8,3 +8,4 @@ This repository is public and contains generic configurations, Nix home-manager 
 - **Tone and Style**: Clear, technical, and objective. Do not use emojis in code, commits, scripts, or documentation.
 - **Separation of Concerns**: Keep business logic or internal corporate data segregated in `.dotfiles-uerj`. Generic engines and portable scripts belong here.
 - **Commit Conventions**: Follow Conventional Commits format (`feat:`, `fix:`, `docs:`, `chore:`, `refactor:`).
+- **Isolation of Corporate Context**: This repository must remain completely generic and agnostic. NEVER expose private repository names, internal company/institution names, proprietary systems, internal wikis, or organizational structures here. Conversely, when authoring internal corporate documentation in work environments, reference tooling strictly by its technical function without cross-referencing external private repositories.
