@@ -9,3 +9,8 @@ Thumbs.db
 *.swp
 *.swo
 *~
+
+# Extensões locais / corporativas customizadas
+/custom.d/*
+!/custom.d/.keep
+

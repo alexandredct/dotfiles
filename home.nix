@@ -1,8 +1,31 @@
 {
   config,
   pkgs,
+  lib,
   ...
-}: {
+}: let
+  # Resolve o diretório real no filesystem usando HOME para permitir leitura de symlinks
+  # que não estejam rastreados no Git do Flake em modo --impure
+  homePath = builtins.getEnv "HOME";
+  customDir =
+    if homePath != ""
+    then /. + "${homePath}/.dotfiles/custom.d"
+    else ./custom.d;
+
+  # Descobre dinamicamente todos os .nix (arquivos ou symlinks) dentro de custom.d/
+  dynamicCustomModules =
+    if builtins.pathExists customDir
+    then let
+      entries = builtins.readDir customDir;
+      nixFiles = builtins.filter
+        (name: lib.hasSuffix ".nix" name && entries.${name} != "directory")
+        (builtins.attrNames entries);
+    in
+      map (name: customDir + "/${name}") nixFiles
+    else [];
+in {
+  imports = dynamicCustomModules;
+
   home.username = "alexandre";
   home.homeDirectory = "/home/alexandre";
 
@@ -98,21 +121,6 @@
         quotepath = false;
       };
     };
-
-    # ==========================================
-    # CONFIGURAÇÕES CONDICIONAIS (Trabalho/GitLab)
-    # ==========================================
-    includes = [
-      {
-        # O "gitdir:" intercepta qualquer repositório dentro deste caminho
-        condition = "gitdir:~/workspace/uerj/";
-        contents = {
-          user = {
-            email = "alexandre.trindade@uerj.br";
-          };
-        };
-      }
-    ];
   };
 
   # ==========================================================================
@@ -349,91 +357,6 @@
             return $?
             ;;
         esac
-      }
-
-      # Função uws: Seleciona ou abre workspaces da UERJ via fzf ou busca direta
-      # Uso:
-      #   uws            -> Menu interativo fzf (abre no VS Code)
-      #   uws assiste    -> Busca e abre o workspace do assiste no VS Code
-      #   uws -a assiste -> Abre no Antigravity IDE
-      uws() {
-        local ws_dir="$HOME/.dotfiles-uerj/workspaces/vscode"
-        local is_agy=false
-        local query=""
-
-        if [ "$1" = "-a" ] || [ "$1" = "--agy" ]; then
-          is_agy=true
-          shift
-        fi
-
-        query="$1"
-
-        if [ ! -d "$ws_dir" ]; then
-          echo "Diretorio de workspaces nao encontrado: $ws_dir"
-          return 1
-        fi
-
-        _get_profile() {
-          local ws_name="$1"
-          case "$ws_name" in
-            *assiste*|*sfs*|*siext*|*validador*|*microservicos*|*springboot*)
-              echo "UERJ - Java"
-              ;;
-            *laravel*|*prematricula*|*pessoa*|*sabm*|*sie*|*sig*|*spo*)
-              echo "UERJ - PHP"
-              ;;
-            *euerj*|*templates*)
-              echo "UERJ - Fullstack"
-              ;;
-            *dotfiles*)
-              echo "UERJ - Infra"
-              ;;
-            *)
-              echo ""
-              ;;
-          esac
-        }
-
-        _open_ws() {
-          local file="$1"
-          local base_name
-          base_name=$(basename "$file" .code-workspace)
-          local profile
-          profile=$(_get_profile "$base_name")
-
-          local profile_args=()
-          if [ -n "$profile" ]; then
-            profile_args=(--profile "$profile")
-          fi
-
-          if [ "$is_agy" = true ]; then
-            agy "$file" "''${profile_args[@]}"
-          else
-            code "''${profile_args[@]}" "$file"
-          fi
-        }
-
-        if [ -n "$query" ]; then
-          local target
-          target=$(find "$ws_dir" -maxdepth 1 -name "*$query*.code-workspace" | head -n 1)
-          if [ -n "$target" ] && [ -f "$target" ]; then
-            _open_ws "$target"
-            return 0
-          fi
-          echo "Workspace contendo '$query' nao encontrado em $ws_dir."
-          return 1
-        fi
-
-        if command -v fzf >/dev/null 2>&1; then
-          local selected
-          selected=$(find "$ws_dir" -maxdepth 1 -name "*.code-workspace" -exec basename {} \; | fzf --prompt="Workspace UERJ > " --height=40% --reverse)
-          if [ -n "$selected" ]; then
-            _open_ws "$ws_dir/$selected"
-          fi
-        else
-          echo "Workspaces disponiveis em $ws_dir:"
-          ls -1 "$ws_dir"/*.code-workspace | xargs -n 1 basename | sed 's/\.code-workspace$//'
-        fi
       }
 
       # Função gtag: Automatiza a criação de tags anotadas no padrão DEPSEN (alfa, beta e prod)
@@ -733,15 +656,9 @@
 
     shellAliases = {
       # ======================================================================
-      # WORKSPACES UERJ & VSCODE / ANTIGRAVITY
-      # ======================================================================
-      ws-list = "ls -1 ~/.dotfiles-uerj/workspaces/vscode/*.code-workspace | xargs -n 1 basename | sed 's/\\.code-workspace$//'"; # Lista todos os workspaces disponiveis
-      ws-uerj = "cd ~/.dotfiles-uerj/workspaces/vscode"; # Navega para o diretorio de workspaces UERJ
-
-      # ======================================================================
       # NIX & HOME MANAGER
       # ======================================================================
-      hms = "home-manager switch --flake ~/.dotfiles#alexandre"; # Aplica as alterações do Nix
+      hms = "home-manager switch --impure --flake ~/.dotfiles#alexandre"; # Aplica as alterações do Nix
       hmn = "home-manager news --flake ~/.dotfiles#alexandre"; # Lẽ as notas de atualização
       hmg = "home-manager generations"; # Lista o histórico de versões
       nfu = "nix flake update --flake ~/.dotfiles"; # Atualiza os canais do Flake
@@ -760,7 +677,6 @@
       # ======================================================================
       # CUSTOMIZAÇÕES E APLICAÇÕES (.bash_aliases)
       # ======================================================================
-      depsen = "cd ~/workspace/uerj/git/depsen"; # Atalho para o diretório do projeto depsen
       git-update-all = "for d in */; do (cd \"$d\" && [ -d .git ] && echo -e \"\\n\\033[1;34m» Processando: $d\\033[0m\" && git fetch -p && { git pull --rebase --autostash || { echo -e \"\\033[1;33m⚠ Conflito detectado! Abortando rebase e pulando...\\033[0m\"; git rebase --abort; }; }); done"; # Entra em cada subdiretório e faz um git pull --rebase
 
       # ======================================================================
