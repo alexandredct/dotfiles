@@ -499,18 +499,21 @@ in {
             prod|release)
               # Prioridade 1: promover última tag beta ou alfa para prod
               local last_pre
-              last_pre=$(git tag -l "v*.*.*-beta.*" "v*.*.*-alfa.*" "v*.*.*.beta.*" "v*.*.*.alfa.*" --sort=-v:refname | head -n 1)
-              if [[ "$last_pre" =~ ^(v[0-9]+\.[0-9]+\.[0-9]+)[-.](beta|alfa)\.[0-9]+$ ]]; then
+              last_pre=$(git tag -l "v*.*.*-beta.*" "v*.*.*-alfa.*" "v*.*.*.beta.*" "v*.*.*.alfa.*" "[0-9]*.*.*-beta.*" "[0-9]*.*.*-alfa.*" "[0-9]*.*.*.beta.*" "[0-9]*.*.*.alfa.*" \
+                | awk '{t=$0; sub(/^v/, "", t); print t, $0}' | sort -k1,1V | tail -n 1 | awk '{print $2}')
+              if [[ "$last_pre" =~ ^(v?[0-9]+\.[0-9]+\.[0-9]+)[-.](beta|alfa)\.[0-9]+$ ]]; then
                 new_tag="''${BASH_REMATCH[1]}"
               else
                 # Prioridade 2: se não há beta/alfa pendente, incrementa o patch da última versão estável
                 local last_prod
-                last_prod=$(git tag -l "v*.*.*" --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
-                if [[ "$last_prod" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
-                  local major="''${BASH_REMATCH[1]}"
-                  local minor="''${BASH_REMATCH[2]}"
-                  local patch="''${BASH_REMATCH[3]}"
-                  new_tag="v''${major}.''${minor}.$((patch + 1))"
+                last_prod=$(git tag -l "v*.*.*" "[0-9]*.*.*" | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+$' \
+                  | awk '{t=$0; sub(/^v/, "", t); print t, $0}' | sort -k1,1V | tail -n 1 | awk '{print $2}')
+                if [[ "$last_prod" =~ ^(v?)([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+                  local prefix="''${BASH_REMATCH[1]}"
+                  local major="''${BASH_REMATCH[2]}"
+                  local minor="''${BASH_REMATCH[3]}"
+                  local patch="''${BASH_REMATCH[4]}"
+                  new_tag="''${prefix}''${major}.''${minor}.$((patch + 1))"
                 else
                   echo -e "\033[1;33mNenhuma tag base estável ou pré-release encontrada.\033[0m Informe manualmente (ex: gtag v1.0.0)."
                   return 1
@@ -519,12 +522,14 @@ in {
               ;;
             patch)
               local last_prod
-              last_prod=$(git tag -l "v*.*.*" --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
-              if [[ "$last_prod" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
-                local major="''${BASH_REMATCH[1]}"
-                local minor="''${BASH_REMATCH[2]}"
-                local patch="''${BASH_REMATCH[3]}"
-                new_tag="v''${major}.''${minor}.$((patch + 1))"
+              last_prod=$(git tag -l "v*.*.*" "[0-9]*.*.*" | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+$' \
+                | awk '{t=$0; sub(/^v/, "", t); print t, $0}' | sort -k1,1V | tail -n 1 | awk '{print $2}')
+              if [[ "$last_prod" =~ ^(v?)([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+                local prefix="''${BASH_REMATCH[1]}"
+                local major="''${BASH_REMATCH[2]}"
+                local minor="''${BASH_REMATCH[3]}"
+                local patch="''${BASH_REMATCH[4]}"
+                new_tag="''${prefix}''${major}.''${minor}.$((patch + 1))"
               else
                 echo -e "\033[1;33mNenhuma tag estável encontrada para calcular patch.\033[0m Informe manualmente (ex: gtag v1.0.0)."
                 return 1
@@ -532,11 +537,13 @@ in {
               ;;
             minor)
               local last_prod
-              last_prod=$(git tag -l "v*.*.*" --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
-              if [[ "$last_prod" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
-                local major="''${BASH_REMATCH[1]}"
-                local minor="''${BASH_REMATCH[2]}"
-                new_tag="v''${major}.$((minor + 1)).0"
+              last_prod=$(git tag -l "v*.*.*" "[0-9]*.*.*" | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+$' \
+                | awk '{t=$0; sub(/^v/, "", t); print t, $0}' | sort -k1,1V | tail -n 1 | awk '{print $2}')
+              if [[ "$last_prod" =~ ^(v?)([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+                local prefix="''${BASH_REMATCH[1]}"
+                local major="''${BASH_REMATCH[2]}"
+                local minor="''${BASH_REMATCH[3]}"
+                new_tag="''${prefix}''${major}.$((minor + 1)).0"
               else
                 echo -e "\033[1;33mNenhuma tag estável encontrada para calcular minor.\033[0m Informe manualmente (ex: gtag v1.0.0)."
                 return 1
@@ -544,10 +551,12 @@ in {
               ;;
             major)
               local last_prod
-              last_prod=$(git tag -l "v*.*.*" --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
-              if [[ "$last_prod" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
-                local major="''${BASH_REMATCH[1]}"
-                new_tag="v$((major + 1)).0.0"
+              last_prod=$(git tag -l "v*.*.*" "[0-9]*.*.*" | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+$' \
+                | awk '{t=$0; sub(/^v/, "", t); print t, $0}' | sort -k1,1V | tail -n 1 | awk '{print $2}')
+              if [[ "$last_prod" =~ ^(v?)([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+                local prefix="''${BASH_REMATCH[1]}"
+                local major="''${BASH_REMATCH[2]}"
+                new_tag="''${prefix}$((major + 1)).0.0"
               else
                 echo -e "\033[1;33mNenhuma tag estável encontrada para calcular major.\033[0m Informe manualmente (ex: gtag v1.0.0)."
                 return 1
