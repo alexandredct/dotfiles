@@ -121,6 +121,34 @@ in {
         quotepath = false;
       };
     };
+
+    # Hook global commit-msg: remove trailers de co-autoria e atribuicao inseridos
+    # por ferramentas de IA (Cursor, Claude Code e similares). Os agentes injetam o
+    # trailer antes dos hooks, por isso a limpeza precisa ocorrer aqui.
+    hooks = {
+      commit-msg = pkgs.writeShellScript "commit-msg" ''
+        set -eu
+        msg_file="$1"
+
+        # Remove trailers de co-autoria de IA e as linhas "Made with ..." / "Generated with ...".
+        sed -i -E \
+          -e '/^(Co-authored-by|Co-Authored-By):.*(cursor|cursoragent|claude|anthropic|copilot|gemini|antigravity|codex|openai)/Id' \
+          -e '/^(Made with Cursor|Generated with Claude Code)/Id' \
+          "$msg_file"
+
+        # Normaliza linhas em branco finais deixadas pela remocao.
+        tmp="$(mktemp)"
+        git stripspace < "$msg_file" > "$tmp"
+        cat "$tmp" > "$msg_file"
+        rm -f "$tmp"
+
+        # core.hooksPath global substitui .git/hooks do repositorio: encadeia o hook local.
+        local_hook="$(git rev-parse --git-common-dir 2>/dev/null)/hooks/commit-msg"
+        if [ -x "$local_hook" ] && [ "$(realpath "$local_hook")" != "$(realpath "$0")" ]; then
+          exec "$local_hook" "$@"
+        fi
+      '';
+    };
   };
 
   # ==========================================================================
